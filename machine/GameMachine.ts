@@ -3,6 +3,7 @@ import { createModel } from 'xstate/lib/model'
 import { GridState, User } from '../types'
 import { hostGameAction, joinGameAction, leaveGameAction, readyGameAction, restartGameAction, setCurrentPlayerAction, startGameAction, unreadyGameAction } from './actions';
 import { canHostGuard, canJoinGuard, canLeaveGuard, canReadyGuard, canStartGuard, canuUnreadyGuard } from './guards';
+import { Tiles } from './Tiles';
 
 export enum GameStates {
     HOME = 'HOME',
@@ -36,7 +37,9 @@ export const GameModel = createModel({
         ["0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0"],
         ["0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0"],
         ["0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0"]
-    ] as GridState
+    ] as GridState,
+    Tiles: Tiles,
+    playerTiles: []
 }, {
     events: {
         join: (userId: User["id"], name: User["name"], xp: User["xp"], room: string) => ({ userId, name, xp, room }),

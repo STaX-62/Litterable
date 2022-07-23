@@ -54,6 +54,12 @@
     </v-navigation-drawer>
     <v-footer app>
       <span>&copy; Clément Mouronval {{ new Date().getFullYear() }}</span>
+      <span class="mx-2">
+        <v-icon>mdi-twitch</v-icon> <a href="https://twitch.fr/tup_stax">tup_stax</a>
+      </span>
+      <span class="mx-2">
+        <v-icon>mdi-github</v-icon> <a href="https://github.com/STaX-62">STaX-62</a>
+      </span>
     </v-footer>
   </v-app>
 </template>

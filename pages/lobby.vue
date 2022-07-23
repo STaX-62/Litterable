@@ -1,5 +1,5 @@
 <template>
-  <v-row>
+  <v-row class="ma-2">
     <v-col cols="12" md="6" sm="12" class="text-center">
       <v-card class="grid">
         <div v-for="id in 225" :id="'tile-' + id" :key="id" style="border: thin solid hsla(0, 0%, 100%, 0.12); position: relative" dropzone="" />
@@ -31,7 +31,11 @@
             </p>
           </v-col>
         </v-row>
-        <v-card-text>
+        <v-divider />
+        <v-card-text v-if="gameTime != null">
+          <v-subheader>Tuiles restantes : 102 </v-subheader>
+        </v-card-text>
+        <v-card-text v-if="gameTime == null">
           <v-btn :color="isReady($user) ? 'success' : 'red'" @click="Ready()">
             {{ isReady($user) ? 'Prêt' : 'Pas Prêt' }}
           </v-btn>
@@ -39,7 +43,6 @@
             Démarrer
           </v-btn>
         </v-card-text>
-        {{ gameTime }}
       </v-card>
     </v-col>
   </v-row>
@@ -72,7 +75,7 @@ export default {
   computed: {
     Lobby() {
       return this.LobbyUsers
-    }
+    },
   },
   mounted() {
     this.$machine.onChange(() => {
@@ -203,7 +206,7 @@ export default {
   grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
   grid-template-rows: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
   width: 100%;
-  height: calc(100vh - 130px);
+  height: calc(100vh - 140px);
   position: relative;
 }
 
