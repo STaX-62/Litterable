@@ -1,11 +1,12 @@
 import { ContextFrom, EventFrom } from 'xstate';
 import { GameModel } from './machine/GameMachine'
+import { Tile } from './machine/Tiles';
 
 export type User = {
     id: number,
     name: string,
     xp: number,
-    room?: number
+    tiles?: Array<Tile>
 }
 
 export type Notification = {

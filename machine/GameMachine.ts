@@ -2,7 +2,7 @@ import { createMachine } from 'xstate';
 import { createModel } from 'xstate/lib/model'
 import { GridState, User } from '../types'
 import { hostGameAction, joinGameAction, leaveGameAction, readyGameAction, restartGameAction, setCurrentPlayerAction, startGameAction, unreadyGameAction } from './actions';
-import { canHostGuard, canJoinGuard, canLeaveGuard, canReadyGuard, canStartGuard, canuUnreadyGuard } from './guards';
+import { canHostGuard, canJoinGuard, canLeaveGuard, canReadyGuard, canStartGuard, canUnreadyGuard } from './guards';
 import { Tiles } from './Tiles';
 
 export enum GameStates {
@@ -38,8 +38,7 @@ export const GameModel = createModel({
         ["0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0"],
         ["0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0"]
     ] as GridState,
-    Tiles: Tiles,
-    playerTiles: []
+    Tiles: Tiles
 }, {
     events: {
         join: (userId: User["id"], name: User["name"], xp: User["xp"], room: string) => ({ userId, name, xp, room }),
@@ -92,14 +91,14 @@ export const GameMachine = GameModel.createMachine({
                     target: GameStates.ROOM
                 },
                 unready: {
-                    cond: canuUnreadyGuard,
+                    cond: canUnreadyGuard,
                     actions: [GameModel.assign(unreadyGameAction)],
                     target: GameStates.ROOM
                 },
                 start: {
                     cond: canStartGuard,
                     actions: [GameModel.assign(setCurrentPlayerAction), GameModel.assign(startGameAction)],
-                    target: GameStates.PLAY
+                    target: GameStates.PLAY,
                 }
             }
         },

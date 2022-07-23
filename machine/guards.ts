@@ -16,7 +16,7 @@ export const canReadyGuard: GameGuard<"ready"> = (context, event) => {
     return context.playersReady.find(u => u === event.userId) === undefined
 }
 
-export const canuUnreadyGuard: GameGuard<"unready"> = (context, event) => {
+export const canUnreadyGuard: GameGuard<"unready"> = (context, event) => {
     return !!context.playersReady.find(u => u === event.userId)
 }
 
