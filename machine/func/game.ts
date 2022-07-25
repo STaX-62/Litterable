@@ -1,6 +1,4 @@
-import { User } from "~/types";
-
-export function RandomizeUsers(array: User[]) {
+export function arrayRandomizer(array: any[]) {
     let currentIndex = array.length, randomIndex;
 
     while (currentIndex != 0) {

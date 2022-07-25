@@ -1,7 +1,7 @@
 import { createMachine } from 'xstate';
 import { createModel } from 'xstate/lib/model'
 import { GridState, User } from '../types'
-import { hostGameAction, joinGameAction, leaveGameAction, readyGameAction, restartGameAction, setCurrentPlayerAction, startGameAction, unreadyGameAction } from './actions';
+import { hostGameAction, joinGameAction, leaveGameAction, readyGameAction, restartGameAction, startGameAction, unreadyGameAction } from './actions';
 import { canHostGuard, canJoinGuard, canLeaveGuard, canReadyGuard, canStartGuard, canUnreadyGuard } from './guards';
 import { Tiles } from './Tiles';
 
@@ -97,7 +97,7 @@ export const GameMachine = GameModel.createMachine({
                 },
                 start: {
                     cond: canStartGuard,
-                    actions: [GameModel.assign(setCurrentPlayerAction), GameModel.assign(startGameAction)],
+                    actions: [GameModel.assign(startGameAction)],
                     target: GameStates.PLAY,
                 }
             }

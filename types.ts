@@ -6,7 +6,7 @@ export type User = {
     id: number,
     name: string,
     xp: number,
-    tiles?: Array<Tile>
+    tiles: Array<Tile>
 }
 
 export type Notification = {

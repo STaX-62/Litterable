@@ -32,9 +32,16 @@
           </v-col>
         </v-row>
         <v-divider />
-        <v-card-text v-if="gameTime != null">
-          <v-subheader>Tuiles restantes : 102 </v-subheader>
-        </v-card-text>
+        <div v-if="gameTime != null">
+          <v-card-title> Vos pièces:</v-card-title>
+          <div class="tile-row">
+            <div style="padding:5px" v-for="(tile, index) in userTiles" :key="index">
+              <div class="tile elevation-20">
+                {{ tile.id }}
+              </div>
+            </div>
+          </div>
+        </div>
         <v-card-text v-if="gameTime == null">
           <v-btn :color="isReady($user) ? 'success' : 'red'" @click="Ready()">
             {{ isReady($user) ? 'Prêt' : 'Pas Prêt' }}
@@ -69,7 +76,8 @@ export default {
       LobbyUsers: [],
       ReadyUsers: [],
       Host: null,
-      gameTime: null
+      gameTime: null,
+      userTiles: []
     }
   },
   computed: {
@@ -83,9 +91,10 @@ export default {
       this.ReadyUsers = this.$machine.state.context.playersReady
       this.Host = this.$machine.state.context.Host
       this.gameTime = this.$machine.state.context.gameStarted
+      this.userTiles = this.$machine.state.context.Users.find(u => u.id == this.$user.id).tiles
       console.log(new Date())
       console.log(this.$machine.state.context.gameStarted)
-      console.log(this.$machine.state.context)
+      console.log(this.$machine.state.context.Users)
     })
     this.$machine.send(
       GameModel.events.host(this.$user.id, this.$user.name, this.$user.xp)
@@ -208,6 +217,22 @@ export default {
   width: 100%;
   height: calc(100vh - 140px);
   position: relative;
+}
+
+.tile {
+  background: #dac67e;
+  color: black;
+  height: 50px;
+  width: 50px;
+  border-radius: 10px;
+  line-height: 50px;
+}
+
+.tile-row {
+  display: flex;
+  width: 50%;
+  margin: auto;
+  justify-content: center;
 }
 
 @media (max-width: 600px) {
