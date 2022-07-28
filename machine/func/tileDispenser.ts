@@ -1,5 +1,4 @@
-import { User } from '~/types';
-import { Tile } from '../Tiles';
+import { Tile, User } from '~/types';
 import { arrayRandomizer } from './game';
 
 export function DispenseTile(userTiles: User['tiles'], ContextTiles: Tile[]) {

@@ -1,10 +1,4 @@
-import { TileState } from '~/types';
-
-export type Tile = {
-    id: TileState,
-    number: number,
-    value: number
-}
+import { Tile } from '~/types';
 
 export const Tiles = [
     {

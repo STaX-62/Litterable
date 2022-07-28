@@ -1,8 +1,20 @@
 <template>
   <v-row class="ma-2">
     <v-col cols="12" md="6" sm="12" class="text-center">
-      <v-card class="grid">
-        <div v-for="id in 225" :id="'tile-' + id" :key="id" style="border: thin solid hsla(0, 0%, 100%, 0.12); position: relative" dropzone="" />
+      <v-card>
+        <div class="grid">
+          <div v-for="(val, index) in 225" :id="'tile-' + index" :key="index" style=" position: relative;">
+            <draggable v-model="newBoard[index]" class="grid-tile" group="people" style="width:calc(3rem + 2px); height: calc(3rem + 2px);border: thin solid hsla(0, 0%, 100%, 0.12);"
+              :move="onMoveCallback">
+              <div class="tile" v-for="(tile, index) in newBoard[index]" :key="index">
+                {{ tile.id }}
+                <div style="position:absolute;bottom:4px;right:5px;line-height: 1em;">{{ tile.value }} </div>
+              </div>
+            </draggable>
+            <!-- <v-text-field solo :v-model=" message[index]" style="z-index: 2;" hide-details maxlength="1">
+            </v-text-field> -->
+          </div>
+        </div>
       </v-card>
     </v-col>
     <v-col cols="12" md="6" sm="12" class="text-center" style="height: 100%">
@@ -33,14 +45,14 @@
         </v-row>
         <v-divider />
         <div v-if="gameTime != null">
-          <v-card-title> Vos pièces:</v-card-title>
-          <div class="tile-row">
-            <div style="padding:5px" v-for="(tile, index) in userTiles" :key="index">
-              <div class="tile elevation-20">
-                {{ tile.id }}
-              </div>
+          <v-card-title> Vos pièces: <v-spacer></v-spacer> pièces restantes: {{ remainingTiles }}</v-card-title>
+
+          <draggable v-model="userTiles" group="people" @start="drag = true" @end="drag = false" class="tile-row" :move="onMoveCallback">
+            <div class="tile" v-for="(tile, index) in userTiles" :key="index">
+              {{ tile.id }}
+              <div style="position:absolute;bottom:4px;right:5px;line-height: 1em;">{{ tile.value }} </div>
             </div>
-          </div>
+          </draggable>
         </div>
         <v-card-text v-if="gameTime == null">
           <v-btn :color="isReady($user) ? 'success' : 'red'" @click="Ready()">
@@ -50,15 +62,21 @@
             Démarrer
           </v-btn>
         </v-card-text>
+        <v-btn color="primary" :disabled="EveryoneReady()" @click="placeWord()">
+          Valider
+        </v-btn>
       </v-card>
     </v-col>
   </v-row>
 </template>
-
 <script>
 import { GameModel } from '~/machine/GameMachine'
+import draggable from 'vuedraggable'
 export default {
   name: 'Salon',
+  components: {
+    draggable
+  },
   data() {
     return {
       board: {
@@ -77,7 +95,11 @@ export default {
       ReadyUsers: [],
       Host: null,
       gameTime: null,
-      userTiles: []
+      userTiles: [],
+      remainingTiles: 0,
+      Board: Array.from(new Array(225), x => []),
+      newBoard: Array.from(new Array(225), x => []),
+      drag: false
     }
   },
   computed: {
@@ -92,6 +114,10 @@ export default {
       this.Host = this.$machine.state.context.Host
       this.gameTime = this.$machine.state.context.gameStarted
       this.userTiles = this.$machine.state.context.Users.find(u => u.id == this.$user.id).tiles
+      this.remainingTiles = 0
+      for (const t of this.$machine.state.context.Tiles.values()) {
+        this.remainingTiles = this.remainingTiles + t.number
+      }
       console.log(new Date())
       console.log(this.$machine.state.context.gameStarted)
       console.log(this.$machine.state.context.Users)
@@ -99,28 +125,28 @@ export default {
     this.$machine.send(
       GameModel.events.host(this.$user.id, this.$user.name, this.$user.xp)
     )
-    for (var i = 1; i <= 225; i++) {
+    for (var i = 0; i < 225; i++) {
       this.board.TW.forEach((e) => {
-        if (i == e) {
+        if (i == e - 1) {
           document.getElementById('tile-' + i).classList.toggle('TW')
         }
       })
       this.board.DW.forEach((e) => {
-        if (i == e) {
+        if (i == e - 1) {
           document.getElementById('tile-' + i).classList.toggle('DW')
         }
       })
       this.board.TL.forEach((e) => {
-        if (i == e) {
+        if (i == e - 1) {
           document.getElementById('tile-' + i).classList.toggle('TL')
         }
       })
       this.board.DL.forEach((e) => {
-        if (i == e) {
+        if (i == e - 1) {
           document.getElementById('tile-' + i).classList.toggle('DL')
         }
       })
-      if (i == this.board.CS) {
+      if (i == this.board.CS - 1) {
         document.getElementById('tile-' + i).classList.toggle('CS')
       }
     }
@@ -142,6 +168,7 @@ export default {
         this.$machine.send(GameModel.events.ready(player.id))
       }
     },
+
     /// ////////////////
     isReady(player) {
       return this.ReadyUsers.filter(u => u == player.id).length > 0
@@ -154,6 +181,13 @@ export default {
     },
     Start() {
       console.log(this.$machine.send(GameModel.events.start(this.$user.id)))
+    },
+    onMoveCallback(evt, originalEvent) {
+      if (evt.relatedContext.list.length > 0 || evt.draggedContext.element.placement === undefined)
+        return false;
+    },
+    placeWord() {
+      this.$machine.send(GameModel.events.placeWord())
     },
     avatarColor(player) {
       if (player.name == this.$user.name) {
@@ -194,45 +228,81 @@ export default {
   background: #e8ddb5;
 }
 
+
 .TW::before,
 .DW::before,
 .TL::before,
 .DL::before,
 .CS::before {
   position: absolute;
-  z-index: 1;
-  width: 100%;
-  height: 100%;
+  z-index: -1;
+  width: calc(3rem + 2px);
+  height: calc(3rem + 2px);
   top: 0;
   left: 0;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: 1s z-index;
+  border: thin solid hsla(0, 0%, 100%, 0.12);
 }
 
 .grid {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
-  grid-template-rows: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
-  width: 100%;
-  height: calc(100vh - 140px);
+  z-index: 1;
+  grid-template-columns: repeat(15, calc(3rem + 2px));
+  grid-template-rows: repeat(15, calc(3rem + 2px));
+  width: fit-content;
+  margin: 0 auto;
   position: relative;
+  background: transparent;
 }
 
 .tile {
   background: #dac67e;
   color: black;
-  height: 50px;
-  width: 50px;
+  height: 3rem;
+  width: 3rem;
   border-radius: 10px;
-  line-height: 50px;
+  line-height: 3rem;
+  transform: translate(0, 0);
+  margin: auto;
 }
 
 .tile-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(7, calc(3rem + 5px));
+  grid-template-rows: 3rem;
   width: 50%;
-  margin: auto;
+  padding: 10px;
+  margin: 10px auto;
   justify-content: center;
+  border: thin solid hsla(0, 0%, 100%, 0.12);
+}
+
+.flip-list-move {
+  transition: transform 0.5s;
+}
+
+@media (max-width: 1600px) {
+
+  :root {
+    font-size: 60%;
+  }
+}
+
+@media (max-width: 1050px) {
+
+  :root {
+    font-size: 50%;
+  }
+}
+
+@media (max-width: 960px) {
+
+  :root {
+    font-size: 1.8vw;
+  }
 }
 
 @media (max-width: 600px) {

@@ -1,14 +1,14 @@
 import { GameAction, GameContext } from '~/types';
-import { arrayRandomizer } from './func/game';
+import { addTiles, arrayRandomizer, nextPlayer } from './func/game';
 import { DispenseTile } from './func/tileDispenser';
 import { GameModel } from './GameMachine';
 
 export const joinGameAction: GameAction<"join"> = (context, event) => ({
-    Users: [...context.Users, { id: event.userId, name: event.name, xp: event.xp, tiles: [] }]
+    Users: [...context.Users, { id: event.userId, name: event.name, xp: event.xp, points: 0, tiles: [] }]
 })
 
 export const hostGameAction: GameAction<"host"> = (context, event) => ({
-    Users: [...context.Users, { id: event.userId, name: event.name, xp: event.xp, tiles: [] }],
+    Users: [...context.Users, { id: event.userId, name: event.name, xp: event.xp, points: 0, tiles: [] }],
     Host: event.userId
 })
 
@@ -38,6 +38,21 @@ export const startGameAction: GameAction<"start"> = (context, event) => {
         Users: order,
         Tiles: ContextTiles,
         currentPlayer: order[0].id
+    }
+}
+
+export const placeWordAction: GameAction<"placeWord"> = (context, event) => {
+    let ContextTiles = context.Tiles
+    let Users = context.Users
+    var r = DispenseTile(context.Users.find(u => u.id = event.userId)!.tiles, ContextTiles)
+    Users.find(u => u.id = event.userId)!.tiles = r.userTiles
+    ContextTiles = r.remainingTiles
+
+    return {
+        Users: Users,
+        Tiles: ContextTiles,
+        grid: addTiles(context.grid, event.tiles),
+        currentPlayer: nextPlayer(context.Users, context.currentPlayer!)
     }
 }
 

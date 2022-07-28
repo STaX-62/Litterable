@@ -1,11 +1,11 @@
 import { ContextFrom, EventFrom } from 'xstate';
 import { GameModel } from './machine/GameMachine'
-import { Tile } from './machine/Tiles';
 
 export type User = {
     id: number,
     name: string,
     xp: number,
+    points: number,
     tiles: Array<Tile>
 }
 
@@ -16,9 +16,15 @@ export type Notification = {
     user: string
 }
 
-export type TileEmpty = "0"
-export type TileState = "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I" | "J" | "K" | "L" | "M" | "N" | "O" | "P" | "Q" | "R" | "S" | "T" | "U" | "V" | "W" | "X" | "Y" | "Z" | "0" | "$"
-export type GridState = TileState[][]
+export type Tile = {
+    id: TileState,
+    number: number,
+    value: number,
+    placement?: number
+}
+
+export type TileState = "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I" | "J" | "K" | "L" | "M" | "N" | "O" | "P" | "Q" | "R" | "S" | "T" | "U" | "V" | "W" | "X" | "Y" | "Z" | "$"
+export type GridState = Array<Tile>
 export type GameContext = ContextFrom<typeof GameModel>
 export type GameEvents = EventFrom<typeof GameModel>
 export type GameEvent<T extends GameEvents["type"]> = GameEvents & { type: T }

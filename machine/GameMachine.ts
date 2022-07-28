@@ -1,9 +1,9 @@
 import { createMachine } from 'xstate';
 import { createModel } from 'xstate/lib/model'
-import { GridState, User } from '../types'
-import { hostGameAction, joinGameAction, leaveGameAction, readyGameAction, restartGameAction, startGameAction, unreadyGameAction } from './actions';
-import { canHostGuard, canJoinGuard, canLeaveGuard, canReadyGuard, canStartGuard, canUnreadyGuard } from './guards';
-import { Tiles } from './Tiles';
+import { GridState, Tile, User } from '../types'
+import { hostGameAction, joinGameAction, leaveGameAction, placeWordAction, readyGameAction, restartGameAction, startGameAction, unreadyGameAction } from './actions';
+import { canHostGuard, canJoinGuard, canLeaveGuard, canPlayGuard, canReadyGuard, canStartGuard, canUnreadyGuard } from './guards';
+import { Tiles } from './ressources/Tiles';
 
 export enum GameStates {
     HOME = 'HOME',
@@ -21,23 +21,7 @@ export const GameModel = createModel({
     Room: null as null | string,
     playersReady: [] as Array<User['id']>,
     gameStarted: null as null | Date,
-    grid: [
-        ["0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0"],
-        ["0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0"],
-        ["0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0"],
-        ["0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0"],
-        ["0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0"],
-        ["0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0"],
-        ["0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0"],
-        ["0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0"],
-        ["0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0"],
-        ["0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0"],
-        ["0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0"],
-        ["0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0"],
-        ["0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0"],
-        ["0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0"],
-        ["0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0"]
-    ] as GridState,
+    grid: new Array(225) as GridState,
     Tiles: Tiles
 }, {
     events: {
@@ -47,7 +31,7 @@ export const GameModel = createModel({
         ready: (userId: User["id"]) => ({ userId }),
         unready: (userId: User["id"]) => ({ userId }),
         start: (userId: User["id"]) => ({ userId }),
-        placeTile: (userId: User["id"], tile: number) => ({ userId, tile }),
+        placeWord: (userId: User["id"], tiles: Tile[]) => ({ userId, tiles }),
         confirm: (userId: User["id"]) => ({ userId }),
         vote: (userId: User["id"]) => ({ userId }),
         restart: (userId: User["id"]) => ({ userId })
@@ -104,8 +88,10 @@ export const GameMachine = GameModel.createMachine({
         },
         [GameStates.PLAY]: {
             on: {
-                placeTile: {
-                    target: GameStates.PLAY
+                placeWord: {
+                    cond: canPlayGuard,
+                    actions: [GameModel.assign(placeWordAction)],
+                    target: GameStates.PLAY,
                 },
                 confirm: {
                     target: GameStates.VOTE
