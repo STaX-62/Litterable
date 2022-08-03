@@ -3,16 +3,21 @@
     <v-col cols="12" md="6" sm="12" class="text-center">
       <v-card>
         <div class="grid">
-          <div v-for="(val, index) in 225" :id="'tile-' + index" :key="index" style=" position: relative;">
-            <draggable v-model="newBoard[index]" class="grid-tile" group="people" style="width:calc(3rem + 2px); height: calc(3rem + 2px);border: thin solid hsla(0, 0%, 100%, 0.12);"
-              :move="onMoveCallback">
-              <div class="tile" v-for="(tile, index) in newBoard[index]" :key="index">
-                {{ tile.id }}
-                <div style="position:absolute;bottom:4px;right:5px;line-height: 1em;">{{ tile.value }} </div>
-              </div>
-            </draggable>
-            <!-- <v-text-field solo :v-model=" message[index]" style="z-index: 2;" hide-details maxlength="1">
+
+          <div v-for="(val, x) in Board" :key="x" style=" position: relative;">
+            <div v-for="(val, y) in Board[x]" :id="'tile-' + y + '-' + x" :key="y" style=" position: relative;">
+              <draggable v-model="Board[x][y]" class="grid-tile" group="grid" style="width:calc(3rem + 2px); height: calc(3rem + 2px);border: thin solid hsla(0, 0%, 100%, 0.12);"
+                :move="onMoveCallback" @change="changeEvent">
+
+                <div class="tile" v-for="(tile, index) in Board[x][y]" :key="index" :color="TileState(tile, x, y)">
+                  {{ tile.id }}
+                  <div style="position:absolute;bottom:4px;right:5px;line-height: 1em;">{{ tile.value }} </div>
+                </div>
+                <transition-group name="grid"></transition-group>
+              </draggable>
+              <!-- <v-text-field solo :v-model=" message[index]" style="z-index: 2;" hide-details maxlength="1">
             </v-text-field> -->
+            </div>
           </div>
         </div>
       </v-card>
@@ -47,7 +52,7 @@
         <div v-if="gameTime != null">
           <v-card-title> Vos pièces: <v-spacer></v-spacer> pièces restantes: {{ remainingTiles }}</v-card-title>
 
-          <draggable v-model="userTiles" group="people" @start="drag = true" @end="drag = false" class="tile-row" :move="onMoveCallback">
+          <draggable v-model="userTiles" group="grid" class="tile-row" :move="onMoveCallback">
             <div class="tile" v-for="(tile, index) in userTiles" :key="index">
               {{ tile.id }}
               <div style="position:absolute;bottom:4px;right:5px;line-height: 1em;">{{ tile.value }} </div>
@@ -62,8 +67,8 @@
             Démarrer
           </v-btn>
         </v-card-text>
-        <v-btn color="primary" :disabled="EveryoneReady()" @click="placeWord()">
-          Valider
+        <v-btn color="primary" @click="placeWord()">
+          Valider le tour
         </v-btn>
       </v-card>
     </v-col>
@@ -80,16 +85,16 @@ export default {
   data() {
     return {
       board: {
-        TW: [1, 8, 15, 106, 120, 211, 218, 225],
+        TW: ['0-0', '0-7', '0-14', '7-0', '7-14', '14-0', '14-7', '14-14'],
         DW: [
-          17, 29, 33, 43, 49, 57, 65, 71, 155, 161, 169, 177, 183, 193, 197, 209
+          '1-1', '1-13', '2-2', '2-12', '3-3', '3-11', '4-4', '4-10',
+          '10-4', '10-10', '11-3', '11-11', '12-2', '12-12', '13-1', '13-13'
         ],
-        TL: [21, 25, 77, 81, 85, 89, 137, 141, 145, 149, 201, 205],
-        DL: [
-          4, 12, 37, 39, 46, 53, 60, 93, 97, 99, 103, 109, 117, 123, 127, 129,
-          133, 166, 173, 180, 187, 189, 214, 222
+        TL: ['1-5', '1-9', '5-1', '5-5', '5-9', '5-13', '9-1', '9-5', '9-9', '9-13', '13-5', '13-9'],
+        DL: ['0-3', '0-11', '2-6', '2-8', '3-0', '3-7', '3-14', '6-2', '6-6', '6-8', '6-12', '7-3',
+          '7-11', '8-2', '8-6', '8-8', '8-12', '11-0', '11-7', '11-14', '12-6', '12-8', '14-3', '14-11'
         ],
-        CS: 113
+        CS: '7-7'
       },
       LobbyUsers: [],
       ReadyUsers: [],
@@ -97,9 +102,8 @@ export default {
       gameTime: null,
       userTiles: [],
       remainingTiles: 0,
-      Board: Array.from(new Array(225), x => []),
-      newBoard: Array.from(new Array(225), x => []),
-      drag: false
+      Board: Array.from(new Array(15), x => Array.from(new Array(15), y => [])),
+      currentPlayer: null
     }
   },
   computed: {
@@ -109,6 +113,7 @@ export default {
   },
   mounted() {
     this.$machine.onChange(() => {
+      this.currentPlayer = this.$machine.state.context.currentPlayer
       this.LobbyUsers = this.$machine.state.context.Users
       this.ReadyUsers = this.$machine.state.context.playersReady
       this.Host = this.$machine.state.context.Host
@@ -123,33 +128,21 @@ export default {
       console.log(this.$machine.state.context.Users)
     })
     this.$machine.send(
-      GameModel.events.host(this.$user.id, this.$user.name, this.$user.xp)
+      GameModel.events.host(this.$user.id, this.$user.name, this.$user.xp, 15)
     )
-    for (var i = 0; i < 225; i++) {
-      this.board.TW.forEach((e) => {
-        if (i == e - 1) {
-          document.getElementById('tile-' + i).classList.toggle('TW')
-        }
-      })
-      this.board.DW.forEach((e) => {
-        if (i == e - 1) {
-          document.getElementById('tile-' + i).classList.toggle('DW')
-        }
-      })
-      this.board.TL.forEach((e) => {
-        if (i == e - 1) {
-          document.getElementById('tile-' + i).classList.toggle('TL')
-        }
-      })
-      this.board.DL.forEach((e) => {
-        if (i == e - 1) {
-          document.getElementById('tile-' + i).classList.toggle('DL')
-        }
-      })
-      if (i == this.board.CS - 1) {
-        document.getElementById('tile-' + i).classList.toggle('CS')
-      }
-    }
+    this.board.TW.forEach(e => {
+      document.getElementById('tile-' + e).classList.toggle('TW')
+    })
+    this.board.DW.forEach(e => {
+      document.getElementById('tile-' + e).classList.toggle('DW')
+    })
+    this.board.TL.forEach(e => {
+      document.getElementById('tile-' + e).classList.toggle('TL')
+    })
+    this.board.DL.forEach(e => {
+      document.getElementById('tile-' + e).classList.toggle('DL')
+    })
+    document.getElementById('tile-' + this.board.CS).classList.toggle('CS')
   },
   methods: {
     Ready() {
@@ -168,8 +161,7 @@ export default {
         this.$machine.send(GameModel.events.ready(player.id))
       }
     },
-
-    /// ////////////////
+    ///////////////////
     isReady(player) {
       return this.ReadyUsers.filter(u => u == player.id).length > 0
     },
@@ -183,10 +175,33 @@ export default {
       console.log(this.$machine.send(GameModel.events.start(this.$user.id)))
     },
     onMoveCallback(evt, originalEvent) {
-      if (evt.relatedContext.list.length > 0 || evt.draggedContext.element.placement === undefined)
-        return false;
+      if (!evt.to.classList.contains('tile-row')) {
+        if (this.Board[7][7][0] === undefined && evt.to.parentElement.id != "tile-7-7") {
+          return false
+        }
+        if (evt.relatedContext.list.length > 0 || evt.draggedContext.element.placement !== undefined /*|| this.currentPlayer != this.$user.id */)
+          return false;
+      }
+    },
+    changeEvent(event) {
+      console.log(event)
+    },
+    TileState(tile, x, y) {
+      if ((this.Board[x - 1][y][0] != undefined || this.Board[x + 1][y][0] != undefined || this.Board[x][y - 1][0] != undefined || this.Board[x][y + 1][0] != undefined)) {
+        return 'success'
+      }
+      return 'danger'
     },
     placeWord() {
+      var letters = []
+      var word = []
+      for (var x = 0; x < this.Board.length; x++) {
+        for (var y = 0; y < this.Board[x].length; y++) {
+          if (this.Board[x][y][0] !== undefined && this.Board[x][y][0].placement === undefined) {
+
+          }
+        }
+      }
       this.$machine.send(GameModel.events.placeWord())
     },
     avatarColor(player) {
@@ -247,6 +262,17 @@ export default {
   border: thin solid hsla(0, 0%, 100%, 0.12);
 }
 
+.grid-enter-active,
+.grid-leave-active {
+  transition: all 0.5s ease;
+}
+
+.grid-enter-from,
+.grid-leave-to {
+  opacity: 0;
+  transform: translateX(30px);
+}
+
 .grid {
   display: grid;
   z-index: 1;
@@ -256,6 +282,7 @@ export default {
   margin: 0 auto;
   position: relative;
   background: transparent;
+  transition: all 0.5s ease;
 }
 
 .tile {
@@ -278,6 +305,14 @@ export default {
   margin: 10px auto;
   justify-content: center;
   border: thin solid hsla(0, 0%, 100%, 0.12);
+}
+
+div[color=success] {
+  background: green;
+}
+
+div[color=danger] {
+  background: red;
 }
 
 .flip-list-move {

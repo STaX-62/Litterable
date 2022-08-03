@@ -1,4 +1,5 @@
 import { GameContext, GameEvent, GameGuard } from '~/types';
+import { verifyPlacement } from './func/game';
 import { dictionary } from './ressources/dictionary';
 
 export const canJoinGuard: GameGuard<"join"> = (context, event) => {
@@ -22,9 +23,14 @@ export const canUnreadyGuard: GameGuard<"unready"> = (context, event) => {
 }
 
 export const canStartGuard: GameGuard<"start"> = (context, event) => {
-    return context.Host == event.userId
+    return context.Host == event.userId && context.Users.length >= 2
 }
-// (event.tiles.every(t => t.placement! % 15 == event.tiles[0].placement) ||  ) 
+
 export const canPlayGuard: GameGuard<"placeWord"> = (context, event) => {
-    return event.userId === context.currentPlayer && dictionary.includes(event.tiles.map(i => i.id).join(''))
+    return event.userId === context.currentPlayer
+        && event.word.every(w => dictionary.includes(w.word.map(i => i.id).join('')))
+        && event.tiles.every(t =>
+            context.Users.find(u => u.id == context.currentPlayer)!.tiles.includes(t)
+        )
+        && event.word.every(w => verifyPlacement(w.word, w.direction))
 }

@@ -1,15 +1,15 @@
 import { createMachine } from 'xstate';
 import { createModel } from 'xstate/lib/model'
-import { GridState, Tile, User } from '../types'
+import { GridState, Tile, User, Word } from '../types'
 import { hostGameAction, joinGameAction, leaveGameAction, placeWordAction, readyGameAction, restartGameAction, startGameAction, unreadyGameAction } from './actions';
 import { canHostGuard, canJoinGuard, canLeaveGuard, canPlayGuard, canReadyGuard, canStartGuard, canUnreadyGuard } from './guards';
+import { dictionary } from './ressources/dictionary';
 import { Tiles } from './ressources/Tiles';
 
 export enum GameStates {
     HOME = 'HOME',
     ROOM = 'ROOM',
     PLAY = 'PLAY',
-    VOTE = 'VOTE',
     VICTORY = 'VICTORY',
     DRAW = 'DRAW'
 }
@@ -21,19 +21,19 @@ export const GameModel = createModel({
     Room: null as null | string,
     playersReady: [] as Array<User['id']>,
     gameStarted: null as null | Date,
-    grid: new Array(225) as GridState,
+    grid: [] as GridState[][],
+    gridsize: null as null | number,
     Tiles: Tiles
 }, {
     events: {
         join: (userId: User["id"], name: User["name"], xp: User["xp"], room: string) => ({ userId, name, xp, room }),
-        host: (userId: User["id"], name: User["name"], xp: User["xp"]) => ({ userId, name, xp }),
+        host: (userId: User["id"], name: User["name"], xp: User["xp"], gridsize: number) => ({ userId, name, xp, gridsize }),
         leave: (userId: User["id"]) => ({ userId }),
         ready: (userId: User["id"]) => ({ userId }),
         unready: (userId: User["id"]) => ({ userId }),
         start: (userId: User["id"]) => ({ userId }),
-        placeWord: (userId: User["id"], tiles: Tile[]) => ({ userId, tiles }),
+        placeWord: (userId: User["id"], tiles: Tile[], word: Array<Word>) => ({ userId, tiles, word }),
         confirm: (userId: User["id"]) => ({ userId }),
-        vote: (userId: User["id"]) => ({ userId }),
         restart: (userId: User["id"]) => ({ userId })
     }
 })
@@ -94,14 +94,7 @@ export const GameMachine = GameModel.createMachine({
                     target: GameStates.PLAY,
                 },
                 confirm: {
-                    target: GameStates.VOTE
-                }
-            }
-        },
-        [GameStates.VOTE]: {
-            on: {
-                vote: {
-                    target: GameStates.VICTORY
+                    target: GameStates.PLAY
                 }
             }
         },

@@ -1,10 +1,16 @@
 import { Tile, User } from '~/types';
 import { arrayRandomizer } from './game';
 
-export function DispenseTile(userTiles: User['tiles'], ContextTiles: Tile[]) {
+export function DispenseTile(userTiles: User['tiles'], ContextTiles: Tile[], usedLetters?: Tile[]) {
     var getTile: Tile
     var TileArray = [] as string[]
     var i
+
+    if (usedLetters !== undefined) {
+        usedLetters.forEach(l => {
+            userTiles.splice(userTiles.findIndex(t => t.id == l.id))
+        })
+    }
 
     while (userTiles === undefined || userTiles.length < 7) {
         ContextTiles = ContextTiles.filter(t => t.number > 0)

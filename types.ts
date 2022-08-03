@@ -20,11 +20,19 @@ export type Tile = {
     id: TileState,
     number: number,
     value: number,
-    placement?: number
+    placement?: {
+        x: number,
+        y: number
+    }
+}
+
+export type Word = {
+    direction: string,
+    word: Tile[]
 }
 
 export type TileState = "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I" | "J" | "K" | "L" | "M" | "N" | "O" | "P" | "Q" | "R" | "S" | "T" | "U" | "V" | "W" | "X" | "Y" | "Z" | "$"
-export type GridState = Array<Tile>
+export type GridState = Tile
 export type GameContext = ContextFrom<typeof GameModel>
 export type GameEvents = EventFrom<typeof GameModel>
 export type GameEvent<T extends GameEvents["type"]> = GameEvents & { type: T }
