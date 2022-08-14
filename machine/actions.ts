@@ -46,11 +46,20 @@ export const startGameAction: GameAction<"start"> = (context, event) => {
 export const placeWordAction: GameAction<"placeWord"> = (context, event) => {
     let ContextTiles = context.Tiles
     let Users = context.Users
-    var r = DispenseTile(context.Users.find(u => u.id = event.userId)!.tiles, ContextTiles, event.tiles)
+
+    let User = context.Users.find(u => u.id == event.userId)!
+    console.log(User.tiles.map(t => t.id))
+    event.tilesdebug.forEach(t => {
+        User.tiles.splice(User.tiles.findIndex(r => r.id == t), 1)
+    })
+    console.log(User.tiles.map(t => t.id))
+
+    var r = DispenseTile(User.tiles, ContextTiles, event.tiles)
+    console.log(r.userTiles.map(t => t.id))
     Users.find(u => u.id = event.userId)!.tiles = r.userTiles
     ContextTiles = r.remainingTiles
-    Users[event.userId] = countPoints(Users[event.userId], event.word)
-
+    Users[event.userId] = countPoints(Users[event.userId], context.playedWords)
+    console.log(Users[event.userId].points)
     return {
         Users: Users,
         Tiles: ContextTiles,

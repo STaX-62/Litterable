@@ -7,7 +7,7 @@
           <div v-for="(val, x) in Board" :key="x" style=" position: relative;">
             <div v-for="(val, y) in Board[x]" :id="'tile-' + y + '-' + x" :key="y" style=" position: relative;">
               <draggable v-model="Board[x][y]" class="grid-tile" group="grid" style="width:calc(3rem + 2px); height: calc(3rem + 2px);border: thin solid hsla(0, 0%, 100%, 0.12);"
-                :move="onMoveCallback" @change="changeEvent">
+                :move="onMoveCallback">
 
                 <div class="tile" v-for="(tile, index) in Board[x][y]" :key="index" :color="TileState(tile, x, y)">
                   {{ tile.id }}
@@ -98,6 +98,7 @@ export default {
       },
       LobbyUsers: [],
       ReadyUsers: [],
+      playedTiles: [],
       Host: null,
       gameTime: null,
       userTiles: [],
@@ -175,6 +176,11 @@ export default {
       console.log(this.$machine.send(GameModel.events.start(this.$user.id)))
     },
     onMoveCallback(evt, originalEvent) {
+      if (evt.to.classList.contains('tile-row')) {
+        if (this.playedTiles.find(t => t.id == evt.draggedContext.element.id && t.value == evt.draggedContext.element.value)) {
+          this.playedTiles.splice(this.playedTiles.findIndex(t => t.id == evt.draggedContext.element.id && t.value == evt.draggedContext.element.value), 1)
+        }
+      }
       if (!evt.to.classList.contains('tile-row')) {
         if (this.Board[7][7][0] === undefined && evt.to.parentElement.id != "tile-7-7") {
           return false
@@ -183,10 +189,10 @@ export default {
           return false;
       }
     },
-    changeEvent(event) {
-      console.log(event)
-    },
     TileState(tile, x, y) {
+      if (!this.playedTiles.find(t => t.id == tile.id && t.value == tile.value)) {
+        this.playedTiles.push(tile)
+      }
       if ((this.Board[x - 1][y][0] != undefined || this.Board[x + 1][y][0] != undefined || this.Board[x][y - 1][0] != undefined || this.Board[x][y + 1][0] != undefined)) {
         return 'success'
       }
@@ -194,15 +200,20 @@ export default {
     },
     placeWord() {
       var letters = []
-      var word = []
       for (var x = 0; x < this.Board.length; x++) {
         for (var y = 0; y < this.Board[x].length; y++) {
-          if (this.Board[x][y][0] !== undefined && this.Board[x][y][0].placement === undefined) {
-
+          if (this.Board[x][y][0]) {
+            if (!this.Board[x][y][0].placement) {
+              this.Board[x][y][0].placement = { x: x, y: y }
+              letters.push(this.Board[x][y][0])
+              console.log(letters)
+            }
+            console.log(this.Board[x][y][0])
           }
         }
       }
-      this.$machine.send(GameModel.events.placeWord())
+      console.log(letters)
+      console.log(this.$machine.send(GameModel.events.placeWord(this.$user.id, letters, letters.map(t => t.id))))
     },
     avatarColor(player) {
       if (player.name == this.$user.name) {

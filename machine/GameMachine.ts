@@ -1,9 +1,8 @@
 import { createMachine } from 'xstate';
 import { createModel } from 'xstate/lib/model'
-import { GridState, Tile, User, Word } from '../types'
+import { Tile, User } from '../types'
 import { hostGameAction, joinGameAction, leaveGameAction, placeWordAction, readyGameAction, restartGameAction, startGameAction, unreadyGameAction } from './actions';
 import { canHostGuard, canJoinGuard, canLeaveGuard, canPlayGuard, canReadyGuard, canStartGuard, canUnreadyGuard } from './guards';
-import { dictionary } from './ressources/dictionary';
 import { Tiles } from './ressources/Tiles';
 
 export enum GameStates {
@@ -21,8 +20,9 @@ export const GameModel = createModel({
     Room: null as null | string,
     playersReady: [] as Array<User['id']>,
     gameStarted: null as null | Date,
-    grid: [] as GridState[][],
+    grid: [] as Tile[][],
     gridsize: null as null | number,
+    playedWords: [] as Tile[][],
     Tiles: Tiles
 }, {
     events: {
@@ -32,7 +32,7 @@ export const GameModel = createModel({
         ready: (userId: User["id"]) => ({ userId }),
         unready: (userId: User["id"]) => ({ userId }),
         start: (userId: User["id"]) => ({ userId }),
-        placeWord: (userId: User["id"], tiles: Tile[], word: Array<Word>) => ({ userId, tiles, word }),
+        placeWord: (userId: User["id"], tiles: Tile[], tilesdebug: Array<string>) => ({ userId, tiles, tilesdebug }),
         confirm: (userId: User["id"]) => ({ userId }),
         restart: (userId: User["id"]) => ({ userId })
     }

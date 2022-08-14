@@ -1,6 +1,5 @@
-import { GameContext, GameEvent, GameGuard } from '~/types';
+import { GameGuard } from '~/types';
 import { verifyPlacement } from './func/game';
-import { dictionary } from './ressources/dictionary';
 
 export const canJoinGuard: GameGuard<"join"> = (context, event) => {
     return context.Users.length < 4 && context.Users.find(u => u.id === event.userId) === undefined && context.Room == event.room
@@ -27,10 +26,11 @@ export const canStartGuard: GameGuard<"start"> = (context, event) => {
 }
 
 export const canPlayGuard: GameGuard<"placeWord"> = (context, event) => {
+    console.log(event.tiles)
+    console.log(event.tiles.map(t => t.id))
+    let placement = verifyPlacement(event.tiles, context.grid, context.gridsize!)
+    if (placement.playedWords)
+        context.playedWords = placement.playedWords
     return event.userId === context.currentPlayer
-        && event.word.every(w => dictionary.includes(w.word.map(i => i.id).join('')))
-        && event.tiles.every(t =>
-            context.Users.find(u => u.id == context.currentPlayer)!.tiles.includes(t)
-        )
-        && event.word.every(w => verifyPlacement(w.word, w.direction))
+        && placement.isValid
 }
