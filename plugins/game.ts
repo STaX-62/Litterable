@@ -1,12 +1,18 @@
 import Vue from 'vue'
-import { interpret } from 'xstate'
-import { GameMachine, GameModel } from '~/machine/GameMachine'
+import socketClusterClient from 'socketcluster-client'
+
+// import { interpret } from 'xstate'
+// import { GameMachine, GameModel } from '~/machine/GameMachine'
 let rooms = [] as Array<string>;
 
-const machine = interpret(GameMachine).start()
-machine.state.context.Room = genKey(rooms, 5);
+// const machine = interpret(GameMachine).start()
+// machine.state.context.Room = genKey(rooms, 5);
 
-Vue.prototype.$machine = machine
+Vue.prototype.$socket = socketClusterClient.create({
+    hostname: 'localhost',
+    port: 8000
+});
+
 Vue.prototype.$user = {
     id: 1,
     name: 'STaX',
@@ -14,7 +20,7 @@ Vue.prototype.$user = {
 }
 Vue.prototype.$friends = [
     {
-        name: 'Hanakuliooooannnn',
+        name: 'Hanakulio',
         id: 3400,
         isOnline: true,
         xp: 2500
@@ -33,19 +39,19 @@ Vue.prototype.$friends = [
     }
 ]
 
-export function genKey(rooms: Array<string>, length: number) {
-    let result = ''
-    var cond = false
-    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+// export function genKey(rooms: Array<string>, length: number) {
+//     let result = ''
+//     var cond = false
+//     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
 
-    while (cond == false) {
-        result = ''
-        for (let i = 0; i < length; i++) {
-            result += characters.charAt(
-                Math.floor(Math.random() * characters.length))
-        }
-        if (!rooms.includes(result))
-            cond = true
-    }
-    return result
-}
+//     while (cond == false) {
+//         result = ''
+//         for (let i = 0; i < length; i++) {
+//             result += characters.charAt(
+//                 Math.floor(Math.random() * characters.length))
+//         }
+//         if (!rooms.includes(result))
+//             cond = true
+//     }
+//     return result
+// }

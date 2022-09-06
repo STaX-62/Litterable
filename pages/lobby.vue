@@ -30,19 +30,9 @@
             {{ $machine.state.context.Room }}
           </v-chip>
         </v-card-title>
-        <v-row>
-          <v-col v-for="player in Lobby" :key="player.id">
-            <v-badge bordered bottom :icon="isReady(player) ? 'mdi-check' : 'mdi-close'" :color="isReady(player) ? 'success' : 'red'" offset-x="15" offset-y="22">
-              <!--
-                offset-x="20"
-              offset-y="23"
-              -->
-              <v-btn icon class="my-3" @click="ReadyOther(player)">
-                <v-avatar :color="avatarColor(player)" size="40">
-                  {{ player.name.slice(0, 1) }}
-                </v-avatar>
-              </v-btn>
-            </v-badge>
+        <v-row justify="center">
+          <v-col v-for="player in Lobby" :key="player.id" cols="3">
+            <Player :player="player" :gameStarted="gameTime" :isReady="isReady(player)"></Player>
             <p class="text-center">
               {{ player.name }}
             </p>
@@ -75,12 +65,14 @@
   </v-row>
 </template>
 <script>
-import { GameModel } from '~/machine/GameMachine'
+// import { GameModel } from '~/machine/GameMachine'
 import draggable from 'vuedraggable'
+import Player from '~/components/Player.vue'
 export default {
   name: 'Salon',
   components: {
-    draggable
+    draggable,
+    Player
   },
   data() {
     return {
@@ -110,27 +102,27 @@ export default {
   computed: {
     Lobby() {
       return this.LobbyUsers
-    },
+    }
   },
   mounted() {
-    this.$machine.onChange(() => {
-      this.currentPlayer = this.$machine.state.context.currentPlayer
-      this.LobbyUsers = this.$machine.state.context.Users
-      this.ReadyUsers = this.$machine.state.context.playersReady
-      this.Host = this.$machine.state.context.Host
-      this.gameTime = this.$machine.state.context.gameStarted
-      this.userTiles = this.$machine.state.context.Users.find(u => u.id == this.$user.id).tiles
-      this.remainingTiles = 0
-      for (const t of this.$machine.state.context.Tiles.values()) {
-        this.remainingTiles = this.remainingTiles + t.number
-      }
-      console.log(new Date())
-      console.log(this.$machine.state.context.gameStarted)
-      console.log(this.$machine.state.context.Users)
-    })
-    this.$machine.send(
-      GameModel.events.host(this.$user.id, this.$user.name, this.$user.xp, 15)
-    )
+    // this.$machine.onChange(() => {
+    //   this.currentPlayer = this.$machine.state.context.currentPlayer
+    //   this.LobbyUsers = this.$machine.state.context.Users
+    //   this.ReadyUsers = this.$machine.state.context.playersReady
+    //   this.Host = this.$machine.state.context.Host
+    //   this.gameTime = this.$machine.state.context.gameStarted
+    //   this.userTiles = this.$machine.state.context.Users.find(u => u.id == this.$user.id).tiles
+    //   this.remainingTiles = 0
+    //   for (const t of this.$machine.state.context.Tiles.values()) {
+    //     this.remainingTiles = this.remainingTiles + t.number
+    //   }
+    //   console.log(new Date())
+    //   console.log(this.$machine.state.context.gameStarted)
+    //   console.log(this.$machine.state.context.Users)
+    // })
+    // this.$machine.send(
+    //   GameModel.events.host(this.$user.id, this.$user.name, this.$user.xp, 15)
+    // )
     this.board.TW.forEach(e => {
       document.getElementById('tile-' + e).classList.toggle('TW')
     })
@@ -148,21 +140,11 @@ export default {
   methods: {
     Ready() {
       if (this.ReadyUsers.filter(u => u == this.$user.id).length > 0) {
-        this.$machine.send(GameModel.events.unready(this.$user.id))
+        this.$machine.send(GameModel.events.ready(this.$user.id))
       } else {
         this.$machine.send(GameModel.events.ready(this.$user.id))
       }
     },
-    /// ////////////////
-    // TEST
-    ReadyOther(player) {
-      if (this.ReadyUsers.filter(u => u == player.id).length > 0) {
-        this.$machine.send(GameModel.events.unready(player.id))
-      } else {
-        this.$machine.send(GameModel.events.ready(player.id))
-      }
-    },
-    ///////////////////
     isReady(player) {
       return this.ReadyUsers.filter(u => u == player.id).length > 0
     },
@@ -214,15 +196,6 @@ export default {
       }
       console.log(letters)
       console.log(this.$machine.send(GameModel.events.placeWord(this.$user.id, letters, letters.map(t => t.id))))
-    },
-    avatarColor(player) {
-      if (player.name == this.$user.name) {
-        return 'pink'
-      }
-      if (this.$friends.filter(f => f.name == player.name)) {
-        return 'indigo '
-      }
-      return 'primary'
     }
   }
 }

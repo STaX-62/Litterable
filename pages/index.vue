@@ -16,11 +16,11 @@
               Héberger
             </v-btn>
           </v-row>
-          <v-row class="pa-3 my-3">
+          <!-- <v-row class="pa-3 my-3">
             <v-btn color="primary" nuxt to="/inspire" class="mx-auto" x-large>
               Equipes
             </v-btn>
-          </v-row>
+          </v-row> -->
         </v-card-text>
       </v-card>
     </v-col>

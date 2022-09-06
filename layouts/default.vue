@@ -65,7 +65,7 @@
 </template>
 
 <script>
-import { GameModel } from '~/machine/GameMachine'
+// import { GameModel } from '~/machine/GameMachine'
 export default {
   name: 'DefaultLayout',
   data() {
@@ -74,7 +74,7 @@ export default {
       title: 'Litterable',
       notifications: 2,
       LobbyUsers: [],
-      audio: new Audio('/joinsound.mp3')
+      // audio: new Audio('/joinsound.mp3')
     }
   },
   computed: {
@@ -89,23 +89,23 @@ export default {
     }
   },
   mounted() {
-    this.$machine.onChange(() => {
-      if (this.$machine.state.context.Users.length > this.LobbyUsers.length) {
-        this.audio.play()
-      }
-      this.LobbyUsers = this.$machine.state.context.Users
-    })
+    // this.$machine.onChange(() => {
+    //   if (this.$machine.state.context.Users.length > this.LobbyUsers.length) {
+    //     // this.audio.play()
+    //   }
+    //   this.LobbyUsers = this.$machine.state.context.Users
+    // })
   },
   methods: {
     Invite(friend) {
-      this.$machine.send(
-        GameModel.events.join(
-          friend.id,
-          friend.name,
-          friend.xp,
-          this.$machine.state.context.Room
-        )
-      )
+      // this.$machine.send(
+      //   GameModel.events.join(
+      //     friend.id,
+      //     friend.name,
+      //     friend.xp,
+      //     this.$machine.state.context.Room
+      //   )
+      // )
     },
     getAvatarColor(friend) {
       let color = 'red'
