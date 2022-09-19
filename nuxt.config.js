@@ -51,9 +51,31 @@ export default {
   // Axios module configuration: https://go.nuxtjs.dev/config-axios
   axios: {
     // Workaround to avoid enforcing hard-coded localhost:3000: https://github.com/nuxt-community/axios-module/issues/308
-    baseURL: '/'
+    baseURL: '/',
+    proxy: true
   },
-
+  proxy: {
+    '/connectuser': {
+      target: 'http://localhost:8000/connectuser',
+      pathRewrite: { '^/connectuser': '' },
+      changeOrigin: true
+    },
+    '/prepareconnect': {
+      target: 'http://localhost:8000/prepareconnect',
+      pathRewrite: { '^/prepareconnect': '' },
+      changeOrigin: true
+    },
+    '/connecttoken': {
+      target: 'http://localhost:8000/connecttoken',
+      pathRewrite: { '^/connecttoken': '' },
+      changeOrigin: true
+    },
+    '/friendlistmode': {
+      target: 'http://localhost:8000/friendlistmode',
+      pathRewrite: { '^/friendlistmode': '' },
+      changeOrigin: true
+    },
+  },
   // Vuetify module configuration: https://go.nuxtjs.dev/config-vuetify
   vuetify: {
     customVariables: ['~/assets/variables.scss'],
@@ -72,7 +94,6 @@ export default {
       },
     },
   },
-
   // Build Configuration: https://go.nuxtjs.dev/config-build
   build: {
   }

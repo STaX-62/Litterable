@@ -1,22 +1,15 @@
 import Vue from 'vue'
 import socketClusterClient from 'socketcluster-client'
 
-// import { interpret } from 'xstate'
-// import { GameMachine, GameModel } from '~/machine/GameMachine'
-let rooms = [] as Array<string>;
-
-// const machine = interpret(GameMachine).start()
-// machine.state.context.Room = genKey(rooms, 5);
-
 Vue.prototype.$socket = socketClusterClient.create({
     hostname: 'localhost',
-    port: 8000
-});
-
+    port: 8000,
+})
+// let rooms = [] as Array<string>;
 Vue.prototype.$user = {
-    id: 1,
-    name: 'STaX',
-    xp: 100
+    username: '',
+    exp: 0,
+    uid: '',
 }
 Vue.prototype.$friends = [
     {

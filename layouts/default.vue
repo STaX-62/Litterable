@@ -3,100 +3,99 @@
     <v-app-bar app>
       <v-toolbar-title v-text="title" />
       <v-spacer />
-      <h4 class="mx-2">
-        lvl. {{ LVL(user.xp) }}
-      </h4>
-      <v-progress-linear value="15" style="width: 100px" color="#EDAFB8" />
-      <h4 class="mx-2">
-        {{ user.name }}#{{ user.id }}
-      </h4>
-      <v-badge bordered dot :value="notifications" color="deep-purple accent-4" offset-x="13" offset-y="13">
-        <v-btn icon>
-          <v-avatar color="pink" size="40">
-            {{ user.name.slice(0, 1) }}
-          </v-avatar>
-        </v-btn>
-      </v-badge>
-      <v-badge v-for="player in Lobby" :key="player.id" bordered bottom :content="LVL(player.xp)" color="deep-purple accent-4" offset-x="25" offset-y="15">
+      <v-btn text @click="connectLink" v-if="!user">
+        Connect with Twitch
+        <v-icon class="ml-2">mdi-twitch</v-icon>
+      </v-btn>
+      <User v-if="user"></User>
+      <v-badge
+        v-for="player in Lobby"
+        :key="player.id"
+        bordered
+        bottom
+        :content="LVL(player.xp)"
+        color="deep-purple accent-4"
+        offset-x="25"
+        offset-y="15"
+      >
         <v-btn icon>
           <v-avatar color="indigo" size="40">
             {{ player.name.slice(0, 1) }}
           </v-avatar>
         </v-btn>
       </v-badge>
-
-      <v-btn icon class="ml-2" @click.stop="rightDrawer = !rightDrawer">
+      <v-btn icon class="ml-2" @click.stop="rightDrawer = !rightDrawer" v-if="user">
         <v-icon>mdi-account-multiple</v-icon>
       </v-btn>
     </v-app-bar>
     <v-main>
+      <v-alert class="ma-4" outlined color="orange" type="info">
+        Version non définitive (Work-In-Progress)
+      </v-alert>
       <Nuxt />
     </v-main>
-    <v-navigation-drawer v-model="rightDrawer" right app>
-      <v-list dense>
-        <v-subheader>Amis</v-subheader>
-        <v-list-item-group v-for="(friend, index) in friends" :key="index" color="primary">
-          <v-list-item @click.native="right = !right">
-            <v-list-item-action>
-              <v-avatar :color="getAvatarColor(friend)" size="40">
-                {{ friend.name.slice(0, 1) }}
-              </v-avatar>
-            </v-list-item-action>
-            <v-list-item-title>
-              {{ friend.name }}#{{ friend.id }}
-            </v-list-item-title>
-            <v-btn icon class="ml-2" @click.stop="Invite(friend)">
-              <v-icon>mdi-email</v-icon>
-            </v-btn>
-          </v-list-item>
-        </v-list-item-group>
-      </v-list>
-    </v-navigation-drawer>
+    <Friends :rightDrawer="rightDrawer" v-if="user"></Friends>
     <v-footer app>
       <span>&copy; Clément Mouronval {{ new Date().getFullYear() }}</span>
       <span class="mx-2">
-        <v-icon>mdi-twitch</v-icon> <a href="https://twitch.fr/tup_stax">tup_stax</a>
+        <v-icon>mdi-twitch</v-icon>
+        <a href="https://twitch.fr/tup_stax">tup_stax</a>
       </span>
       <span class="mx-2">
-        <v-icon>mdi-github</v-icon> <a href="https://github.com/STaX-62">STaX-62</a>
+        <v-icon>mdi-github</v-icon>
+        <a href="https://github.com/STaX-62">STaX-62</a>
       </span>
     </v-footer>
   </v-app>
 </template>
 
 <script>
+import User from "~/components/User.vue";
+import Friends from "~/components/Friends.vue";
 // import { GameModel } from '~/machine/GameMachine'
 export default {
-  name: 'DefaultLayout',
+  name: "DefaultLayout",
   data() {
     return {
       rightDrawer: false,
-      title: 'Litterable',
+      title: "Litterable",
       notifications: 2,
       LobbyUsers: [],
+      client_id: "zlahv2pgul6g7bjzhnaf6ngzghv9m9",
+      redirecturl: "http://localhost:3000/",
+      scope: "user:read:email",
+      userprofile: false,
       // audio: new Audio('/joinsound.mp3')
-    }
+    };
   },
   computed: {
     user() {
-      return this.$user
+      console.log(this.$store.state.user);
+      return this.$store.getters.getUser;
     },
     friends() {
-      return this.$friends
+      return this.$friends;
     },
     Lobby() {
-      return this.LobbyUsers.filter(u => u.id !== this.$user.id)
-    }
-  },
-  mounted() {
-    // this.$machine.onChange(() => {
-    //   if (this.$machine.state.context.Users.length > this.LobbyUsers.length) {
-    //     // this.audio.play()
-    //   }
-    //   this.LobbyUsers = this.$machine.state.context.Users
-    // })
+      return this.LobbyUsers.filter((u) => u.id !== this.$user.id);
+    },
   },
   methods: {
+    connectLink() {
+      this.$axios.get("/prepareconnect").then((res) => {
+        console.log(res.data);
+        var params = new URLSearchParams({
+          response_type: "token",
+          client_id: this.client_id,
+          redirect_uri: this.redirecturl,
+          scope: this.scope,
+          state: res.data.csrfToken,
+        });
+        window.location.replace(
+          `https://id.twitch.tv/oauth2/authorize?` + params
+        );
+      });
+    },
     Invite(friend) {
       // this.$machine.send(
       //   GameModel.events.join(
@@ -108,18 +107,19 @@ export default {
       // )
     },
     getAvatarColor(friend) {
-      let color = 'red'
+      let color = "red";
       if (friend.isOnline) {
-        color = 'primary'
+        color = "primary";
       }
-      if (this.Lobby.filter(u => u.id == friend.id).length > 0) {
-        color = 'success'
+      if (this.Lobby.filter((u) => u.id == friend.id).length > 0) {
+        color = "success";
       }
-      return color
+      return color;
     },
     LVL(xp) {
-      return Math.floor(xp / Math.pow(xp, 0.6)) | 0
-    }
-  }
-}
+      return Math.floor(xp / Math.pow(xp, 0.6)) | 0;
+    },
+  },
+  components: { User, Friends },
+};
 </script>

@@ -7,7 +7,7 @@
               -->
       <v-btn icon class="my-3" @click="ReadyOther()">
         <v-avatar :color="avatarColor" size="40">
-          {{ player.name.slice(0, 1) }}
+          {{ player.slice(0, 1) }}
         </v-avatar>
       </v-btn>
     </v-badge>
@@ -20,7 +20,7 @@
 export default {
   name: 'Player',
   props: {
-    player: Object,
+    player: String,
     gameStarted: Number,
     isReady: Boolean
   },

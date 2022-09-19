@@ -1,7 +1,7 @@
 <template>
   <v-row>
     <v-col class="text-center">
-      <img src="/v.png" alt="Vuetify.js" class="mb-5">
+      <img src="/v.png" alt="Vuetify.js" class="mb-5" />
       <blockquote class="blockquote">
         &#8220;First, solve the problem. Then, write the code.&#8221;
         <footer>
@@ -16,16 +16,17 @@
 
 <script>
 export default {
-  name: 'InspirePage',
+  name: "InspirePage",
   mounted() {
-    (async () => {
-      let result = await this.$socket.invoke('host', { uid: this.$user.id });
-
-      let channel = this.$socket.subscribe(result);
-      for await (let data of channel) {
-        await this.$socket.invokePublish('foo', 'This is some more data');
-      }
-    })();
+    // (async () => {
+    //   let result;
+    //   try {
+    //     result = await this.$socket.invoke("getcrsf");
+    //     console.log(result)
+    //   } catch (error) {
+    //     console.log(error.name)
+    //   }
+    // })();
   },
-}
+};
 </script>
