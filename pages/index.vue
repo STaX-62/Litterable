@@ -5,35 +5,42 @@
         <v-card-title class="headline justify-center">
           Modes de jeu
         </v-card-title>
-        <v-card-text>
-          <v-row class="pa-3 my-3">
-            <v-btn
-              color="primary"
-              nuxt
-              to="/searchlobby"
-              class="mx-auto"
-              x-large
-              :disabled="IsInRoom != null"
-            >
-              Rejoindre
-            </v-btn>
-          </v-row>
-          <v-row class="pa-3 my-3">
-            <v-btn
-              color="primary"
-              nuxt
-              to="/lobby"
-              class="mx-auto"
-              x-large
-              :disabled="IsInRoom != null"
-            >
-              Héberger
-            </v-btn>
-          </v-row>
+        <v-card-text class="d-flex flex-column justify-center">
+          <v-btn
+            color="primary"
+            nuxt
+            @click="hostLobby"
+            class="mx-auto my-3"
+            x-large
+            :disabled="IsInRoom != null || !user"
+          >
+            Héberger
+          </v-btn>
+          <v-btn
+            color="primary"
+            nuxt
+            to="/searchlobby"
+            class="mx-auto my-3"
+            x-large
+            :disabled="true"
+          >
+            Matchmaking
+          </v-btn>
+          <v-btn
+            color="primary"
+            nuxt
+            to="/searchlobby"
+            class="mx-auto my-3"
+            x-large
+            :disabled="IsInRoom != null"
+          >
+            Liste des Parties
+          </v-btn>
+
           <v-row class="pa-3 my-3" v-if="IsInRoom">
             <v-btn color="primary" nuxt to="/lobby" class="mx-auto" x-large>
               Reprendre
-              <v-chip class="ml-2" small label>{{ IsInRoom.roomCode }}</v-chip>
+              <v-chip class="ml-2" small label>{{ IsInRoom }}</v-chip>
             </v-btn>
           </v-row>
         </v-card-text>
@@ -59,12 +66,20 @@ export default {
   name: "IndexPage",
   computed: {
     IsInRoom() {
-      if (this.$store.getters.getUser) return this.$store.getters.getUser.room;
-      return null;
+      return this.$store.getters.getContext.roomCode;
+    },
+    user() {
+      console.log(this.$store.getters.getUser);
+      return this.$store.getters.getUser;
     },
   },
-  created() {
-    this.$store.dispatch("getUserData");
+  methods: {
+    hostLobby() {
+      this.$socket.invoke("host").then((res) => {
+        this.$store.commit("setContext", res);
+        this.$router.push("/lobby");
+      });
+    },
   },
 };
 </script>

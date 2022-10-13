@@ -141,6 +141,7 @@ export default {
   methods: {
     Disconnect() {
       localStorage.removeItem("token");
+      localStorage.removeItem("socketcluster.authToken");
       location.reload();
     },
   },

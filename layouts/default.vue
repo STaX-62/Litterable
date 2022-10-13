@@ -24,7 +24,12 @@
           </v-avatar>
         </v-btn>
       </v-badge>
-      <v-btn icon class="ml-2" @click.stop="rightDrawer = !rightDrawer" v-if="user">
+      <v-btn
+        icon
+        class="ml-2"
+        @click.stop="rightDrawer = !rightDrawer"
+        v-if="user"
+      >
         <v-icon>mdi-account-multiple</v-icon>
       </v-btn>
     </v-app-bar>
@@ -62,15 +67,18 @@ export default {
       notifications: 2,
       LobbyUsers: [],
       client_id: "zlahv2pgul6g7bjzhnaf6ngzghv9m9",
-      redirecturl: "http://localhost:3000/",
+      redirecturl: process.env.CLIENT_URL,
       scope: "user:read:email",
       userprofile: false,
       // audio: new Audio('/joinsound.mp3')
     };
   },
+  created() {
+    this.$store.dispatch("getUserData");
+  },
   computed: {
     user() {
-      console.log(this.$store.state.user);
+      console.log(this.$store.getters.getUser);
       return this.$store.getters.getUser;
     },
     friends() {
@@ -82,19 +90,15 @@ export default {
   },
   methods: {
     connectLink() {
-      this.$axios.get("/prepareconnect").then((res) => {
-        console.log(res.data);
-        var params = new URLSearchParams({
-          response_type: "token",
-          client_id: this.client_id,
-          redirect_uri: this.redirecturl,
-          scope: this.scope,
-          state: res.data.csrfToken,
-        });
-        window.location.replace(
-          `https://id.twitch.tv/oauth2/authorize?` + params
-        );
+      var params = new URLSearchParams({
+        response_type: "token",
+        client_id: this.client_id,
+        redirect_uri: this.redirecturl,
+        scope: this.scope,
       });
+      window.location.replace(
+        `https://id.twitch.tv/oauth2/authorize?` + params
+      );
     },
     Invite(friend) {
       // this.$machine.send(

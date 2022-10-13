@@ -2,125 +2,128 @@
   <v-row class="ma-2">
     <v-col cols="12" md="6" sm="12" class="text-center">
       <v-card>
-        <div class="grid">
-          <div v-for="(val, x) in Board" :key="x" style="position: relative">
-            <div
-              v-for="(val, y) in Board[x]"
-              :id="'tile-' + y + '-' + x"
-              :key="y"
-              style="position: relative"
-            >
-              <draggable
-                v-model="Board[x][y]"
-                class="grid-tile"
-                group="grid"
-                style="
-                  width: calc(3rem + 2px);
-                  height: calc(3rem + 2px);
-                  border: thin solid hsla(0, 0%, 100%, 0.12);
-                "
-                :move="onMoveCallback"
-              >
-                <div
-                  class="tile"
-                  v-for="(tile, index) in Board[x][y]"
-                  :key="index"
-                  :color="TileState(tile, x, y)"
-                >
-                  {{ tile.id }}
-                  <div
-                    style="
-                      position: absolute;
-                      bottom: 4px;
-                      right: 5px;
-                      line-height: 1em;
-                    "
-                  >
-                    {{ tile.value }}
-                  </div>
-                </div>
-                <transition-group name="grid"></transition-group>
-              </draggable>
-              <!-- <v-text-field solo :v-model=" message[index]" style="z-index: 2;" hide-details maxlength="1">
-            </v-text-field> -->
-            </div>
-          </div>
-        </div>
+        <table>
+          <tr v-for="y in 15" :key="y">
+            <td
+              v-for="x in 15"
+              :key="x"
+              draggable
+              @dragstart="UpdateBoard($event, item)"
+              @drop="onDrop($event, 1)"
+              @dragover.prevent
+              @dragenter.prevent
+              style="
+                width: calc(3rem + 2px);
+                height: calc(3rem + 2px);
+                border: thin solid hsla(0, 0%, 100%, 0.12);
+              "
+            ></td>
+          </tr>
+        </table>
       </v-card>
     </v-col>
     <v-col cols="12" md="6" sm="12" class="text-center" style="height: 100%">
-      <v-card style="height: 100%">
-        <v-card-title>
-          Salon de {{ user.username ?? "" }}
-          <v-chip class="mx-2" outlined>
-            {{ Context.roomCode }}
-          </v-chip>
-        </v-card-title>
-        <v-row justify="center">
-          <v-col v-for="player in Context.players" :key="player" cols="3">
-            <Player
-              :player="player"
-              :gameStarted="Context.gameTime"
-              :isReady="isReady(player)"
-            ></Player>
-            <p class="text-center">
-              {{ player }}
-            </p>
-          </v-col>
-        </v-row>
-        <v-divider />
-        <div v-if="Context.gameTime != null">
-          <v-card-title>
-            Vos pièces: <v-spacer></v-spacer> pièces restantes:
-            {{ Context.remainingTiles }}</v-card-title
-          >
-
-          <draggable
-            v-model="Context.userTiles"
-            group="grid"
-            class="tile-row"
-            :move="onMoveCallback"
-          >
-            <div
-              class="tile"
-              v-for="(tile, index) in Context.userTiles"
-              :key="index"
-            >
-              {{ tile.id }}
-              <div
-                style="
-                  position: absolute;
-                  bottom: 4px;
-                  right: 5px;
-                  line-height: 1em;
-                "
+      <v-row style="height: 100%">
+        <v-col cols="12" md="12" sm="6">
+          <v-card style="height: 100%">
+            <v-card-title>
+              Salon de {{ user }}
+              <v-chip class="mx-2" outlined>
+                {{ Context.roomCode }}
+              </v-chip>
+              <v-spacer></v-spacer>
+              <v-btn icon @click="Leave">
+                <v-icon>mdi-logout</v-icon>
+              </v-btn>
+            </v-card-title>
+            <v-row justify="center">
+              <v-col v-for="player in Context.players" :key="player" cols="3">
+                <Player
+                  :player="player"
+                  :gameStarted="Context.gameTime"
+                  :isReady="isReady(player)"
+                ></Player>
+                <p class="text-center my-2">
+                  {{ player }}
+                </p>
+              </v-col>
+            </v-row>
+            <v-divider />
+            <div v-if="Context.gameTime != null">
+              <v-card-title>
+                Vos pièces: <v-spacer></v-spacer> pièces restantes:
+                {{ Context.remainingTiles }}</v-card-title
               >
-                {{ tile.value }}
-              </div>
+              <table>
+                <tr class="tile-row">
+                  <td
+                    v-for="(tile, index) in userTiles"
+                    :key="index"
+                    draggable
+                    @dragstart="UpdateBoard($event, tile)"
+                    @drop="UpdateBoard($event, 1)"
+                    @dragover.prevent
+                    @dragenter.prevent
+                    style="
+                      width: calc(3rem + 2px);
+                      height: calc(3rem + 2px);
+                      border: thin solid hsla(0, 0%, 100%, 0.12);
+                    "
+                  >
+                    <div class="tile">
+                      {{ tile.id }}
+                      <div
+                        style="
+                          position: absolute;
+                          bottom: 4px;
+                          right: 5px;
+                          line-height: 1em;
+                        "
+                      >
+                        {{ tile.value }}
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              </table>
             </div>
-          </draggable>
-        </div>
-        <v-card-text v-if="Context.gameTime == null">
-          <v-btn
-            :color="isReady(user.username) ? 'success' : 'red'"
-            @click="Ready()"
-          >
-            {{ isReady(user.username) ? "Prêt" : "Pas Prêt" }}
-          </v-btn>
+            <v-card-text v-if="Context.gameTime == null">
+              <v-btn
+                :color="isReady(user) ? 'success' : 'red'"
+                @click="Ready()"
+              >
+                {{ isReady(user) ? "Prêt" : "Pas Prêt" }}
+              </v-btn>
 
-          <v-btn
-            color="primary"
-            :disabled="EveryoneReady()"
-            @click="Start()"
-            v-if="isHost()"
-            >Démarrer
-          </v-btn>
-          <div v-if="this.Context.players.length < 2" class="my-2">
-            Vous avez besoin d'un joueur de plus pour démarrer
-          </div>
-        </v-card-text>
-        <v-btn color="primary" @click="placeWord()"> Valider le tour </v-btn>
-      </v-card>
+              <v-btn
+                color="primary"
+                :disabled="EveryoneReady()"
+                @click="Start()"
+                v-if="isHost"
+                >Démarrer
+              </v-btn>
+              <div v-if="Context.players.length < 2" class="my-2">
+                Vous avez besoin d'un joueur de plus pour démarrer
+              </div>
+            </v-card-text>
+            <div v-if="Context.serverMSG != ''" class="my-2">
+              Vous avez besoin d'un joueur de plus pour démarrer
+            </div>
+            <v-btn
+              color="primary"
+              @click="placeWord()"
+              v-if="Context.currentPlayer == user"
+            >
+              Valider le tour
+            </v-btn>
+          </v-card>
+        </v-col>
+        <v-col cols="12" md="12" sm="6" style="height: 50%">
+          <v-card>
+            <v-card-title>Server Logs</v-card-title>
+          </v-card>
+        </v-col>
+      </v-row>
     </v-col>
   </v-row>
 </template>
@@ -198,20 +201,7 @@ export default {
         ],
         CS: "7-7",
       },
-      Context: {
-        roomCode: "",
-        Host: null,
-        players: [],
-        readyPlayers: [],
-        playedTiles: [],
-        gameTime: null,
-        userTiles: [],
-        remainingTiles: 0,
-        currentPlayer: null,
-      },
-      Board: Array.from(new Array(15), (x) =>
-        Array.from(new Array(15), (y) => [])
-      ),
+      Board: Array.from(new Array(15), (x) => []),
     };
   },
   computed: {
@@ -219,64 +209,63 @@ export default {
       return this.players;
     },
     user() {
-      return this.$store.getters.getUser;
+      if (this.$store.getters.getUser != null) {
+        return this.$store.getters.getUser.username;
+      } else {
+        return this.$store.getters.getGuestname;
+      }
+    },
+    Context() {
+      return this.$store.getters.getContext;
+    },
+    userTiles: {
+      get() {
+        return this.$store.getters.getContext.userTiles;
+      },
+      set(value) {
+        this.$store.commit("setUserTiles", value);
+      },
+    },
+    isHost() {
+      console.log(this.user == this.Context.Host);
+      console.log(this.user);
+      console.log(this.Context.Host);
+      return this.user == this.Context.Host;
     },
   },
   mounted() {
     (async () => {
-      if (!this.$store.getters.getUser.room) {
-        let result;
-        try {
-          result = await this.$socket.invoke("host");
-          Object.assign(this.Context, result);
-          console.log(result);
-        } catch (error) {
-          console.log(error.name);
-        }
-      } else {
-        this.Context.roomCode = this.$store.getters.getUser.room.roomCode;
-        this.Context.players = this.$store.getters.getUser.room.players;
-      }
       let channel = this.$socket.subscribe(this.Context.roomCode);
       for await (let data of channel) {
-        Object.assign(this.Context, data);
+        this.$store.commit("setContext", data);
+        if (data.gameTime !== undefined) this.wsContext();
       }
     })();
-
-    // this.$machine.onChange(() => {
-    //   this.currentPlayer = this.$machine.state.context.currentPlayer
-    //   this.LobbyUsers = this.$machine.state.context.Users
-    //   this.ReadyUsers = this.$machine.state.context.playersReady
-    //   this.Host = this.$machine.state.context.Host
-    //   this.gameTime = this.$machine.state.context.gameStarted
-    //   this.userTiles = this.$machine.state.context.Users.find(u => u.id == this.$user.id).tiles
-    //   this.remainingTiles = 0
-    //   for (const t of this.$machine.state.context.Tiles.values()) {
-    //     this.remainingTiles = this.remainingTiles + t.number
-    //   }
-    //   console.log(new Date())
-    //   console.log(this.$machine.state.context.gameStarted)
-    //   console.log(this.$machine.state.context.Users)
-    // })
-    // this.$machine.send(
-    //   GameModel.events.host(this.$user.id, this.$user.name, this.$user.xp, 15)
-    // )
-
-    this.board.TW.forEach((e) => {
-      document.getElementById("tile-" + e).classList.toggle("TW");
-    });
-    this.board.DW.forEach((e) => {
-      document.getElementById("tile-" + e).classList.toggle("DW");
-    });
-    this.board.TL.forEach((e) => {
-      document.getElementById("tile-" + e).classList.toggle("TL");
-    });
-    this.board.DL.forEach((e) => {
-      document.getElementById("tile-" + e).classList.toggle("DL");
-    });
-    document.getElementById("tile-" + this.board.CS).classList.toggle("CS");
+    this.wsContext();
+    // this.board.TW.forEach((e) => {
+    //   document.getElementById("tile-" + e).classList.toggle("TW");
+    // });
+    // this.board.DW.forEach((e) => {
+    //   document.getElementById("tile-" + e).classList.toggle("DW");
+    // });
+    // this.board.TL.forEach((e) => {
+    //   document.getElementById("tile-" + e).classList.toggle("TL");
+    // });
+    // this.board.DL.forEach((e) => {
+    //   document.getElementById("tile-" + e).classList.toggle("DL");
+    // });
+    // document.getElementById("tile-" + this.board.CS).classList.toggle("CS");
   },
   methods: {
+    wsContext() {
+      this.$socket
+        .invoke("context", {
+          roomCode: this.Context.roomCode,
+        })
+        .then((res) => {
+          this.$store.commit("setContext", res);
+        });
+    },
     async Ready() {
       let result;
       try {
@@ -284,9 +273,23 @@ export default {
           roomCode: this.Context.roomCode,
         });
         console.log(result);
+        if (result == this.Context.roomCode) {
+          this.$router.push("/");
+        }
       } catch (error) {
         console.log(error.name);
       }
+    },
+    Leave() {
+      this.$socket.unsubscribe(this.Context.roomCode);
+      this.$socket
+        .invoke("leave", {
+          roomCode: this.Context.roomCode,
+        })
+        .then((res) => {
+          this.$store.commit("setContext", res);
+          this.$router.push("/");
+        });
     },
     isReady(player) {
       return this.Context.readyPlayers.includes(player);
@@ -297,62 +300,78 @@ export default {
         this.Context.players.length > 1
       );
     },
-    isHost() {
-      return this.$user.id == this.Context.Host;
-    },
     Start() {
-      // console.log(this.$machine.send(GameModel.events.start(this.$user.id)));
+      this.$socket
+        .invoke("start", {
+          roomCode: this.Context.roomCode,
+        })
+        .then((res) => {
+          this.$store.commit("setContext", res);
+        });
+    },
+    UpdateBoard(evt, item) {
+      console.log(item);
+      console.log(evt);
+    },
+    onDrop(evt, list) {
+      const itemID = evt.dataTransfer;
+      // const item = this.userTiles.find((item) => item.id == itemID);
+      // item.list = list;
+      console.log(itemID)
+      // console.log(item)
     },
     onMoveCallback(evt, originalEvent) {
-      if (evt.to.classList.contains("tile-row")) {
-        if (
-          this.playedTiles.find(
-            (t) =>
-              t.id == evt.draggedContext.element.id &&
-              t.value == evt.draggedContext.element.value
-          )
-        ) {
-          this.playedTiles.splice(
-            this.playedTiles.findIndex(
-              (t) =>
-                t.id == evt.draggedContext.element.id &&
-                t.value == evt.draggedContext.element.value
-            ),
-            1
-          );
-        }
-      }
-      if (!evt.to.classList.contains("tile-row")) {
-        if (
-          this.Board[7][7][0] === undefined &&
-          evt.to.parentElement.id != "tile-7-7"
-        ) {
-          return false;
-        }
-        if (
-          evt.relatedContext.list.length > 0 ||
-          evt.draggedContext.element.placement !==
-            undefined /*|| this.currentPlayer != this.$user.id */
-        )
-          return false;
-      }
+      // if (evt.to.classList.contains("tile-row")) {
+      //   if (
+      //     this.Context.playedTiles.find(
+      //       (t) =>
+      //         t.id == evt.draggedContext.element.id &&
+      //         t.value == evt.draggedContext.element.value
+      //     )
+      //   ) {
+      //     this.Context.playedTiles.splice(
+      //       this.Context.playedTiles.findIndex(
+      //         (t) =>
+      //           t.id == evt.draggedContext.element.id &&
+      //           t.value == evt.draggedContext.element.value
+      //       ),
+      //       1
+      //     );
+      //   }
+      // }
+      // if (!evt.to.classList.contains("tile-row")) {
+      //   if (
+      //     this.Board[7][7][0] === undefined &&
+      //     evt.to.parentElement.id != "tile-7-7"
+      //   ) {
+      //     return false;
+      //   }
+      //   if (
+      //     evt.relatedContext.list.length > 0 ||
+      //     evt.draggedContext.element.placement !== undefined ||
+      //     this.Context.currentPlayer != this.user
+      //   )
+      //     return false;
+      // }
     },
-    TileState(tile, x, y) {
-      if (
-        !this.playedTiles.find((t) => t.id == tile.id && t.value == tile.value)
-      ) {
-        this.playedTiles.push(tile);
-      }
-      if (
-        this.Board[x - 1][y][0] != undefined ||
-        this.Board[x + 1][y][0] != undefined ||
-        this.Board[x][y - 1][0] != undefined ||
-        this.Board[x][y + 1][0] != undefined
-      ) {
-        return "success";
-      }
-      return "danger";
-    },
+    // TileState(tile, x, y) {
+    //   if (
+    //     !this.Context.playedTiles.find(
+    //       (t) => t.id == tile.id && t.value == tile.value
+    //     )
+    //   ) {
+    //     this.Context.playedTiles.push(tile);
+    //   }
+    //   if (
+    //     this.Board[x - 1][y][0] != undefined ||
+    //     this.Board[x + 1][y][0] != undefined ||
+    //     this.Board[x][y - 1][0] != undefined ||
+    //     this.Board[x][y + 1][0] != undefined
+    //   ) {
+    //     return "success";
+    //   }
+    //   return "danger";
+    // },
     placeWord() {
       var letters = [];
       for (var x = 0; x < this.Board.length; x++) {
@@ -440,7 +459,7 @@ export default {
 .grid {
   display: grid;
   z-index: 1;
-  grid-template-columns: repeat(15, calc(3rem + 2px));
+  grid-template-columns: 100%;
   grid-template-rows: repeat(15, calc(3rem + 2px));
   width: fit-content;
   margin: 0 auto;

@@ -2,10 +2,11 @@ import Vue from 'vue'
 import socketClusterClient from 'socketcluster-client'
 
 Vue.prototype.$socket = socketClusterClient.create({
-    hostname: 'localhost',
-    port: 8000,
+    hostname: process.env.SERVER_IP,
+    port: parseInt(process.env.SERVER_PORT!),
 })
-// let rooms = [] as Array<string>;
+
+
 Vue.prototype.$user = {
     username: '',
     exp: 0,
@@ -31,20 +32,3 @@ Vue.prototype.$friends = [
         xp: 400
     }
 ]
-
-// export function genKey(rooms: Array<string>, length: number) {
-//     let result = ''
-//     var cond = false
-//     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
-
-//     while (cond == false) {
-//         result = ''
-//         for (let i = 0; i < length; i++) {
-//             result += characters.charAt(
-//                 Math.floor(Math.random() * characters.length))
-//         }
-//         if (!rooms.includes(result))
-//             cond = true
-//     }
-//     return result
-// }

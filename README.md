@@ -3,33 +3,22 @@
 
 ## projet de jeu style Scrabble en ligne
 
+Ce projet est actuellement en cours de dévellopement depuis le 1er Septembre 2022.
+
+Lien officiel: https://litterable.fr
+
+Serveur de jeu et devellopement: https://litterableserver.freeboxos.fr (encore en cours d'installation)
+
+
 ## Technologies
 
 - NodeJS
 - TypeScript
 - NuxtJS
 - Xstate
-- Websocket
-- https://www.npmjs.com/package/reconnecting-websocket
+- SocketCluster
+- Vuetify
 
-## 
-
-## Build Setup
-
-```bash
-# install dependencies
-$ npm install
-
-# serve with hot reload at localhost:3000
-$ npm run dev
-
-# build for production and launch server
-$ npm run build
-$ npm run start
-
-# generate static project
-$ npm run generate
-```
 
 ## Documentation
 *soon*

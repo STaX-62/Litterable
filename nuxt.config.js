@@ -1,6 +1,20 @@
 import colors from 'vuetify/es5/util/colors'
+import path from 'path'
+import fs from 'fs'
+
+require('dotenv').config({ path: `.env.${process.env.NODE_ENV}` })
 
 export default {
+  server: {
+    port: 3000, // par défaut : 3000
+    host: '0.0.0.0', // par défaut : localhost,
+    timing: false,
+    https: {
+      key: fs.readFileSync(path.resolve('litterableserver.freeboxos.fr', 'privkey.pem'), 'utf8'),
+      cert: fs.readFileSync(path.resolve('litterableserver.freeboxos.fr', 'cert.pem'), 'utf8')
+    }
+  },
+
   // Disable server-side rendering: https://go.nuxtjs.dev/ssr-mode
   ssr: false,
 
@@ -39,9 +53,9 @@ export default {
     // https://go.nuxtjs.dev/typescript
     '@nuxt/typescript-build',
     // https://go.nuxtjs.dev/vuetify
-    '@nuxtjs/vuetify'
+    '@nuxtjs/vuetify',
+    ['@nuxtjs/dotenv', { filename: `.env.${process.env.NODE_ENV}` }],
   ],
-
   // Modules: https://go.nuxtjs.dev/config-modules
   modules: [
     // https://go.nuxtjs.dev/axios
@@ -51,31 +65,11 @@ export default {
   // Axios module configuration: https://go.nuxtjs.dev/config-axios
   axios: {
     // Workaround to avoid enforcing hard-coded localhost:3000: https://github.com/nuxt-community/axios-module/issues/308
-    baseURL: '/',
-    proxy: true
+    baseURL: process.env.SERVER_URL,
+    https: true,
+    proxy: false,
   },
-  proxy: {
-    '/connectuser': {
-      target: 'http://localhost:8000/connectuser',
-      pathRewrite: { '^/connectuser': '' },
-      changeOrigin: true
-    },
-    '/prepareconnect': {
-      target: 'http://localhost:8000/prepareconnect',
-      pathRewrite: { '^/prepareconnect': '' },
-      changeOrigin: true
-    },
-    '/connecttoken': {
-      target: 'http://localhost:8000/connecttoken',
-      pathRewrite: { '^/connecttoken': '' },
-      changeOrigin: true
-    },
-    '/friendlistmode': {
-      target: 'http://localhost:8000/friendlistmode',
-      pathRewrite: { '^/friendlistmode': '' },
-      changeOrigin: true
-    },
-  },
+
   // Vuetify module configuration: https://go.nuxtjs.dev/config-vuetify
   vuetify: {
     customVariables: ['~/assets/variables.scss'],
