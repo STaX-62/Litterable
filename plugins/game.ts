@@ -1,20 +1,20 @@
 import Vue from 'vue'
-import { interpret } from 'xstate'
-import { GameMachine, GameModel } from '~/machine/GameMachine'
-let rooms = [] as Array<string>;
+import socketClusterClient from 'socketcluster-client'
 
-const machine = interpret(GameMachine).start()
-machine.state.context.Room = genKey(rooms, 5);
+Vue.prototype.$socket = socketClusterClient.create({
+    hostname: process.env.SERVER_IP,
+    port: parseInt(process.env.SERVER_PORT!),
+})
 
-Vue.prototype.$machine = machine
+
 Vue.prototype.$user = {
-    id: 1,
-    name: 'STaX',
-    xp: 100
+    username: '',
+    exp: 0,
+    uid: '',
 }
 Vue.prototype.$friends = [
     {
-        name: 'Hanakuliooooannnn',
+        name: 'Hanakulio',
         id: 3400,
         isOnline: true,
         xp: 2500
@@ -32,20 +32,3 @@ Vue.prototype.$friends = [
         xp: 400
     }
 ]
-
-export function genKey(rooms: Array<string>, length: number) {
-    let result = ''
-    var cond = false
-    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
-
-    while (cond == false) {
-        result = ''
-        for (let i = 0; i < length; i++) {
-            result += characters.charAt(
-                Math.floor(Math.random() * characters.length))
-        }
-        if (!rooms.includes(result))
-            cond = true
-    }
-    return result
-}

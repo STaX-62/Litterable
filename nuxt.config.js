@@ -1,6 +1,20 @@
 import colors from 'vuetify/es5/util/colors'
+import path from 'path'
+import fs from 'fs'
+
+require('dotenv').config({ path: `.env.${process.env.NODE_ENV}` })
 
 export default {
+  server: {
+    port: 3000, // par défaut : 3000
+    host: '0.0.0.0', // par défaut : localhost,
+    timing: false,
+    https: {
+      key: fs.readFileSync(path.resolve('litterableserver.freeboxos.fr', 'privkey.pem'), 'utf8'),
+      cert: fs.readFileSync(path.resolve('litterableserver.freeboxos.fr', 'cert.pem'), 'utf8')
+    }
+  },
+
   // Disable server-side rendering: https://go.nuxtjs.dev/ssr-mode
   ssr: false,
 
@@ -39,9 +53,9 @@ export default {
     // https://go.nuxtjs.dev/typescript
     '@nuxt/typescript-build',
     // https://go.nuxtjs.dev/vuetify
-    '@nuxtjs/vuetify'
+    '@nuxtjs/vuetify',
+    ['@nuxtjs/dotenv', { filename: `.env.${process.env.NODE_ENV}` }],
   ],
-
   // Modules: https://go.nuxtjs.dev/config-modules
   modules: [
     // https://go.nuxtjs.dev/axios
@@ -51,7 +65,9 @@ export default {
   // Axios module configuration: https://go.nuxtjs.dev/config-axios
   axios: {
     // Workaround to avoid enforcing hard-coded localhost:3000: https://github.com/nuxt-community/axios-module/issues/308
-    baseURL: '/'
+    baseURL: process.env.SERVER_URL,
+    https: true,
+    proxy: false,
   },
 
   // Vuetify module configuration: https://go.nuxtjs.dev/config-vuetify
@@ -72,7 +88,6 @@ export default {
       },
     },
   },
-
   // Build Configuration: https://go.nuxtjs.dev/config-build
   build: {
   }
