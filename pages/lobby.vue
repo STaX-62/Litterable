@@ -2,24 +2,20 @@
   <v-row class="ma-2">
     <v-col cols="12" md="6" sm="12" class="text-center">
       <v-card>
-        <table>
-          <tr v-for="y in 15" :key="y">
-            <td
-              v-for="x in 15"
-              :key="x"
-              draggable
-              @dragstart="UpdateBoard($event, item)"
-              @drop="onDrop($event, 1)"
-              @dragover.prevent
-              @dragenter.prevent
-              style="
-                width: calc(3rem + 2px);
-                height: calc(3rem + 2px);
-                border: thin solid hsla(0, 0%, 100%, 0.12);
-              "
-            ></td>
-          </tr>
-        </table>
+        <draggable v-model="Board" group="grid" :move="onMoveCallback" @end="handleDragEnd" handle=".draggable">
+          <transition-group tag="div" class="grid" name="grid">
+            <div v-for="(item, index) in Board" :key="index + 0" style="border: thin solid hsla(0, 0%, 100%, 0.12);">
+              <div :id="'tile-'+ index" style="position:relative; width:100%;height:100%">
+                <div :class="'tile ' + (item.id != null ? 'draggable' : '')" v-if="item.id != null">
+                  {{item.id}}
+                  <div>
+                    {{ item.value }}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </transition-group>
+        </draggable>
       </v-card>
     </v-col>
     <v-col cols="12" md="6" sm="12" class="text-center" style="height: 100%">
@@ -38,11 +34,7 @@
             </v-card-title>
             <v-row justify="center">
               <v-col v-for="player in Context.players" :key="player" cols="3">
-                <Player
-                  :player="player"
-                  :gameStarted="Context.gameTime"
-                  :isReady="isReady(player)"
-                ></Player>
+                <Player :player="player" :gameStarted="Context.gameTime" :isReady="isReady(player)"></Player>
                 <p class="text-center my-2">
                   {{ player }}
                 </p>
@@ -52,55 +44,22 @@
             <div v-if="Context.gameTime != null">
               <v-card-title>
                 Vos pièces: <v-spacer></v-spacer> pièces restantes:
-                {{ Context.remainingTiles }}</v-card-title
-              >
-              <table>
-                <tr class="tile-row">
-                  <td
-                    v-for="(tile, index) in userTiles"
-                    :key="index"
-                    draggable
-                    @dragstart="UpdateBoard($event, tile)"
-                    @drop="UpdateBoard($event, 1)"
-                    @dragover.prevent
-                    @dragenter.prevent
-                    style="
-                      width: calc(3rem + 2px);
-                      height: calc(3rem + 2px);
-                      border: thin solid hsla(0, 0%, 100%, 0.12);
-                    "
-                  >
-                    <div class="tile">
-                      {{ tile.id }}
-                      <div
-                        style="
-                          position: absolute;
-                          bottom: 4px;
-                          right: 5px;
-                          line-height: 1em;
-                        "
-                      >
-                        {{ tile.value }}
-                      </div>
-                    </div>
-                  </td>
-                </tr>
-              </table>
+                {{ Context.remainingTiles }}</v-card-title>
+              <draggable v-model="userTiles" group="grid" class="tile-row" :move="onMoveCallback" @end="handleDragEnd">
+                <div class="tile" v-for="(tile, index) in userTiles" :key="index">
+                  {{ tile.id }}
+                  <div>
+                    {{ tile.value }}
+                  </div>
+                </div>
+              </draggable>
             </div>
             <v-card-text v-if="Context.gameTime == null">
-              <v-btn
-                :color="isReady(user) ? 'success' : 'red'"
-                @click="Ready()"
-              >
+              <v-btn :color="isReady(user) ? 'success' : 'red'" @click="Ready()">
                 {{ isReady(user) ? "Prêt" : "Pas Prêt" }}
               </v-btn>
 
-              <v-btn
-                color="primary"
-                :disabled="EveryoneReady()"
-                @click="Start()"
-                v-if="isHost"
-                >Démarrer
+              <v-btn color="primary" :disabled="EveryoneReady()" @click="Start()" v-if="isHost">Démarrer
               </v-btn>
               <div v-if="Context.players.length < 2" class="my-2">
                 Vous avez besoin d'un joueur de plus pour démarrer
@@ -109,11 +68,7 @@
             <div v-if="Context.serverMSG != ''" class="my-2">
               Vous avez besoin d'un joueur de plus pour démarrer
             </div>
-            <v-btn
-              color="primary"
-              @click="placeWord()"
-              v-if="Context.currentPlayer == user"
-            >
+            <v-btn color="primary" @click="placeWord()" v-if="Context.currentPlayer == user">
               Valider le tour
             </v-btn>
           </v-card>
@@ -130,6 +85,7 @@
 <script>
 // import { GameModel } from '~/machine/GameMachine'
 import draggable from "vuedraggable";
+// import Sortable from 'sortablejs';
 import Player from "~/components/Player.vue";
 export default {
   name: "Salon",
@@ -140,68 +96,68 @@ export default {
   data() {
     return {
       board: {
-        TW: ["0-0", "0-7", "0-14", "7-0", "7-14", "14-0", "14-7", "14-14"],
+        TW: ["0", "7", "14", "105", "119", "210", "217", "224"],
         DW: [
-          "1-1",
-          "1-13",
-          "2-2",
-          "2-12",
-          "3-3",
-          "3-11",
-          "4-4",
-          "4-10",
-          "10-4",
-          "10-10",
-          "11-3",
-          "11-11",
-          "12-2",
-          "12-12",
-          "13-1",
-          "13-13",
+          "16",
+          "28",
+          "32",
+          "42",
+          "48",
+          "56",
+          "64",
+          "70",
+          "154",
+          "160",
+          "168",
+          "176",
+          "182",
+          "192",
+          "196",
+          "208",
         ],
         TL: [
-          "1-5",
-          "1-9",
-          "5-1",
-          "5-5",
-          "5-9",
-          "5-13",
-          "9-1",
-          "9-5",
-          "9-9",
-          "9-13",
-          "13-5",
-          "13-9",
+          "20",
+          "24",
+          "76",
+          "80",
+          "84",
+          "88",
+          "136",
+          "140",
+          "144",
+          "148",
+          "200",
+          "204",
         ],
         DL: [
-          "0-3",
-          "0-11",
-          "2-6",
-          "2-8",
-          "3-0",
-          "3-7",
-          "3-14",
-          "6-2",
-          "6-6",
-          "6-8",
-          "6-12",
-          "7-3",
-          "7-11",
-          "8-2",
-          "8-6",
-          "8-8",
-          "8-12",
-          "11-0",
-          "11-7",
-          "11-14",
-          "12-6",
-          "12-8",
-          "14-3",
-          "14-11",
+          "3",
+          "11",
+          "36",
+          "38",
+          "45",
+          "52",
+          "59",
+          "92",
+          "96",
+          "98",
+          "102",
+          "108",
+          "116",
+          "122",
+          "126",
+          "128",
+          "132",
+          "165",
+          "172",
+          "179",
+          "186",
+          "188",
+          "213",
+          "221",
         ],
-        CS: "7-7",
+        CS: "112",
       },
-      Board: Array.from(new Array(15), (x) => []),
+      Board: Array.from(new Array(225), (x) => { return { id: null, value: null } }),
     };
   },
   computed: {
@@ -242,19 +198,19 @@ export default {
       }
     })();
     this.wsContext();
-    // this.board.TW.forEach((e) => {
-    //   document.getElementById("tile-" + e).classList.toggle("TW");
-    // });
-    // this.board.DW.forEach((e) => {
-    //   document.getElementById("tile-" + e).classList.toggle("DW");
-    // });
-    // this.board.TL.forEach((e) => {
-    //   document.getElementById("tile-" + e).classList.toggle("TL");
-    // });
-    // this.board.DL.forEach((e) => {
-    //   document.getElementById("tile-" + e).classList.toggle("DL");
-    // });
-    // document.getElementById("tile-" + this.board.CS).classList.toggle("CS");
+    this.board.TW.forEach((e) => {
+      document.getElementById("tile-" + e).classList.toggle("TW");
+    });
+    this.board.DW.forEach((e) => {
+      document.getElementById("tile-" + e).classList.toggle("DW");
+    });
+    this.board.TL.forEach((e) => {
+      document.getElementById("tile-" + e).classList.toggle("TL");
+    });
+    this.board.DL.forEach((e) => {
+      document.getElementById("tile-" + e).classList.toggle("DL");
+    });
+    document.getElementById("tile-" + this.board.CS).classList.toggle("CS");
   },
   methods: {
     wsContext() {
@@ -313,14 +269,33 @@ export default {
       console.log(item);
       console.log(evt);
     },
+    startDrag(evt, tile, index) {
+      evt.dataTransfer.dropEffect = "move";
+      evt.dataTransfer.effectAllowed = "move";
+      evt.dataTransfer.setData("tile", tile.id);
+      evt.dataTransfer.setData("index", index);
+      console.log(tile)
+    },
     onDrop(evt, list) {
-      const itemID = evt.dataTransfer;
+      const itemID = evt.dataTransfer.getData('tile');
+      const index = evt.dataTransfer.getData('index');
       // const item = this.userTiles.find((item) => item.id == itemID);
       // item.list = list;
-      console.log(itemID)
-      // console.log(item)
+      console.log(index);
+      console.log(itemID);
+      console.log(evt)
     },
-    onMoveCallback(evt, originalEvent) {
+    onMoveCallback(e, originalEvent) {
+      console.log(e)
+      const { index, futureIndex } = e.draggedContext;
+      this.movingIndex = index;
+      this.futureIndex = futureIndex;
+      this.Listfrom = e.from._prevClass;
+      this.Listto = e.to._prevClass;
+      console.log(index)
+      console.log(futureIndex)
+      return false; // disable sort
+
       // if (evt.to.classList.contains("tile-row")) {
       //   if (
       //     this.Context.playedTiles.find(
@@ -353,6 +328,27 @@ export default {
       //   )
       //     return false;
       // }
+    },
+    handleDragEnd() {
+      if (this.Listfrom == "grid" && this.Listto == "grid") {
+        this.futureItem = this.Board[this.futureIndex];
+        this.movingItem = this.Board[this.movingIndex];
+        const _items = Object.assign([], this.Board);
+        _items[this.futureIndex] = this.movingItem;
+        _items[this.movingIndex] = this.futureItem;
+        this.Board = _items;
+      }
+      if (this.Listfrom == "tile-row" && this.Listto == "grid") {
+        this.futureItem = this.userTiles[this.movingIndex];
+        const _items = Object.assign([], this.Board);
+        _items[this.futureIndex] = this.futureItem;
+        this.Board = _items;
+        this.$socket
+          .invoke("placeTile", {
+            roomCode: this.Context.roomCode,
+          })
+      }
+
     },
     // TileState(tile, x, y) {
     //   if (
@@ -434,8 +430,8 @@ export default {
 .CS::before {
   position: absolute;
   z-index: -1;
-  width: calc(3rem + 2px);
-  height: calc(3rem + 2px);
+  width: 100%;
+  height: 100%;
   top: 0;
   left: 0;
   display: flex;
@@ -459,7 +455,8 @@ export default {
 .grid {
   display: grid;
   z-index: 1;
-  grid-template-columns: 100%;
+  grid-template-columns: repeat(15, calc(3rem + 2px));
+  ;
   grid-template-rows: repeat(15, calc(3rem + 2px));
   width: fit-content;
   margin: 0 auto;
@@ -477,6 +474,14 @@ export default {
   line-height: 3rem;
   transform: translate(0, 0);
   margin: auto;
+  border: 1px solid hsla(0, 0%, 2%, 0.466);
+}
+
+.tile div {
+  position: absolute;
+  bottom: 4px;
+  right: 5px;
+  line-height: 1em;
 }
 
 .tile-row {
@@ -500,6 +505,10 @@ div[color="danger"] {
 
 .flip-list-move {
   transition: transform 0.5s;
+}
+
+.grid-move {
+  transition: all 0.3s;
 }
 
 @media (max-width: 1600px) {
